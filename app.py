@@ -12,9 +12,11 @@ from mpesa_parser import MpesaParser, ParsedTransaction
 from mpesa_pdf_parser import MpesaPdfParser
 from bank_statement_parser import BankStatementParser
 from credit_scorer import MpesaCreditScorer, CreditScoreReport
+from mpesa_gateway import MpesaGateway
 
 # In-memory model handle
 ml_model = None
+mpesa_gateway = MpesaGateway()
 
 # Regex rule: Map anything containing "wines", "wine", "bar", or "lounge" as discrete words to Luxury
 LUXURY_PATTERN = re.compile(r"\b(wines?|bar|lounge)\b", re.IGNORECASE)
@@ -471,10 +473,58 @@ async def upload_bank_statement(
         raise HTTPException(status_code=500, detail=f"Bank statement parsing error: {str(e)}")
 
 
+class StkPushRequest(BaseModel):
+    phone: str
+    reference: Optional[str] = "CreditScore"
+
+
+@app.post("/api/v1/mpesa/stk-push")
+def initiate_stk_payment(payload: StkPushRequest):
+    """
+    Triggers Lipa na M-Pesa Online (STK Push) on the user's phone for 50 KES.
+    """
+    try:
+        res = mpesa_gateway.initiate_stk_push(payload.phone, reference=payload.reference)
+        return res
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"M-Pesa STK Push error: {str(e)}")
+
+
+@app.post("/api/v1/mpesa/callback")
+def mpesa_callback(payload: dict):
+    """
+    Asynchronous callback webhook invoked by Safaricom Daraja API upon payment completion.
+    """
+    result = mpesa_gateway.process_callback(payload)
+    return {"ResultCode": 0, "ResultDesc": "Callback accepted successfully."}
+
+
+@app.get("/api/v1/mpesa/check-payment/{checkout_request_id}")
+def check_payment_status(checkout_request_id: str):
+    """
+    Checks if payment has been confirmed for a given CheckoutRequestID.
+    """
+    status = mpesa_gateway.query_status(checkout_request_id)
+    return status
+
+
+@app.post("/api/v1/mpesa/demo-approve/{checkout_request_id}")
+def demo_approve_payment(checkout_request_id: str):
+    """
+    Simulates successful payment confirmation for demonstration and testing.
+    """
+    return mpesa_gateway.simulate_mock_approval(checkout_request_id)
+
+
 @app.get("/health")
 def health_check():
     return {
         "status": "healthy",
         "model_loaded": ml_model is not None,
-        "service": "mpesa-parser-api"
+        "service": "mpesa-parser-api",
+        "mpesa_shortcode": mpesa_gateway.shortcode,
+        "mpesa_env": mpesa_gateway.env
     }
+

@@ -318,3 +318,4 @@ class BankStatementParser:
                 continue
 
         return transactions
+

@@ -8,3 +8,19 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: MPESA_ENVIRONMENT
+        value: production
+      - key: MPESA_SHORTCODE
+        value: "5008412"
+      - key: MPESA_PAYMENT_AMOUNT
+        value: "50"
+      - key: MPESA_TRANSACTION_TYPE
+        value: CustomerBuyGoodsOnline
+      - key: MPESA_CONSUMER_KEY
+        sync: false
+      - key: MPESA_CONSUMER_SECRET
+        sync: false
+      - key: MPESA_PASSKEY
+        sync: false
+      - key: MPESA_CALLBACK_URL
+        sync: false

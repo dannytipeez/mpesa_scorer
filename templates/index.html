@@ -8,17 +8,35 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- html2pdf.js for Client-Side PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     .brand-green { color: #008751; }
     .bg-brand-green { background-color: #008751; }
     .bg-brand-green:hover { background-color: #006b40; }
     .border-brand-green { border-color: #008751; }
+
+    /* Print styling: Hides UI chrome and renders full unblurred report */
+    @media print {
+      header, footer, #tab-bank-panel, #tab-mpesa-pdf-panel, #tab-mpesa-sms-panel,
+      .no-print, #paywall-card, #tx-search-input, #tx-category-filter, #loading-spinner {
+        display: none !important;
+      }
+      #report-content-wrapper {
+        filter: none !important;
+        pointer-events: auto !important;
+        user-select: auto !important;
+      }
+      body {
+        background-color: white !important;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
   <!-- Header -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-bold text-xl shadow-md">
@@ -42,7 +60,7 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
 
     <!-- Upload & Input Selection Tabs -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8 no-print">
       
       <!-- Primary Tabs Navigation: Bank vs M-Pesa PDF vs M-Pesa SMS -->
       <div class="border-b border-slate-200 bg-slate-50/70 px-4 sm:px-6 pt-3 flex flex-wrap gap-2 sm:gap-6">
@@ -154,227 +172,314 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
     </div>
 
     <!-- Spinner Loading Overlay -->
-    <div id="loading-spinner" class="hidden text-center py-12">
+    <div id="loading-spinner" class="hidden text-center py-12 no-print">
       <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-emerald-600"></div>
       <p id="loading-message" class="mt-4 text-sm font-medium text-slate-600">Parsing statement & running 100k ML categorization pipeline...</p>
     </div>
 
     <!-- Results Section (Hidden until analyzed) -->
-    <div id="results-section" class="hidden space-y-8">
+    <div id="results-section" class="hidden space-y-6">
 
-      <!-- Statement Origin Badge -->
-      <div class="flex items-center justify-between bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm">
+      <!-- Statement Origin Badge & PDF Export Action -->
+      <div class="flex items-center justify-between bg-white px-5 py-3.5 rounded-xl border border-slate-200 shadow-sm no-print">
         <div class="flex items-center space-x-2">
           <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Statement Source:</span>
           <span id="source-badge" class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
             BANK STATEMENT
           </span>
+          <span id="tx-count-badge" class="text-xs text-slate-500 font-medium ml-2">10 transactions analyzed</span>
         </div>
-        <span id="tx-count-badge" class="text-xs text-slate-500 font-medium">10 transactions analyzed</span>
-      </div>
-
-      <!-- 1. Credit Score Hero Card -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-          
-          <!-- Score Gauge / Circle -->
-          <div class="text-center md:border-r md:border-slate-200 pr-0 md:pr-6">
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Financial Credit Score</p>
-            <div class="relative inline-flex items-center justify-center">
-              <span id="score-value" class="text-6xl font-black text-slate-900">--</span>
-              <span class="text-slate-400 font-bold ml-1 text-xl">/ 850</span>
-            </div>
-            <div class="mt-3">
-              <span id="tier-badge" class="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-800">
-                --
-              </span>
-            </div>
-          </div>
-
-          <!-- Credit Limit & Key Metrics -->
-          <div class="space-y-4 md:border-r md:border-slate-200 px-0 md:px-6">
-            <div>
-              <p class="text-xs text-slate-500 font-medium">Recommended Micro-Loan / Credit Limit</p>
-              <p id="limit-value" class="text-2xl font-bold text-emerald-600">KES 0.00</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 font-medium">Scoring Confidence</p>
-              <div class="w-full bg-slate-100 rounded-full h-2.5 mt-1 overflow-hidden">
-                <div id="confidence-bar" class="bg-emerald-500 h-2.5 rounded-full" style="width: 0%"></div>
-              </div>
-              <p id="confidence-text" class="text-right text-xs text-slate-400 mt-0.5">0%</p>
-            </div>
-          </div>
-
-          <!-- Quick Risk Summary -->
-          <div class="space-y-2.5 pl-0 md:pl-2">
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Scoring Highlights</p>
-            <div id="summary-positive-pill" class="text-xs p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-100">
-              Positive credit habits verified
-            </div>
-            <div id="summary-risk-pill" class="text-xs p-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-100">
-              Risk flags under inspection
-            </div>
-          </div>
-
+        <div class="flex items-center space-x-2">
+          <button id="top-download-pdf-btn" onclick="downloadPdfReport()" class="hidden px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Download Official PDF</span>
+          </button>
         </div>
       </div>
 
-      <!-- 2. Cash Flow Stat Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p class="text-xs font-medium text-slate-500">Total Inflows</p>
-          <p id="stat-inflows" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
-        </div>
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p class="text-xs font-medium text-slate-500">Total Outflows</p>
-          <p id="stat-outflows" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
-        </div>
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p class="text-xs font-medium text-slate-500">Net Cash Flow</p>
-          <p id="stat-net" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
-        </div>
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p class="text-xs font-medium text-slate-500">Overdrafts / Fuliza</p>
-          <p id="stat-fuliza" class="text-lg font-bold text-rose-600 mt-1">0 (KES 0.00)</p>
-        </div>
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm col-span-2 lg:col-span-1">
-          <p class="text-xs font-medium text-slate-500">Terminal Balance</p>
-          <p id="stat-balance" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
-        </div>
-      </div>
-
-      <!-- 3. Charts & Habit Breakdown -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        <!-- Category Distribution (Donut Chart) -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 class="text-base font-bold text-slate-900 mb-4">Spending by Financial Category</h3>
-          <div class="h-64 relative">
-            <canvas id="categoryChart"></canvas>
+      <!-- Payment Confirmation Success Banner (Visible upon payment completion) -->
+      <div id="payment-success-banner" class="hidden bg-emerald-50 border border-emerald-300 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 no-print">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow">
+            ✓
           </div>
-        </div>
-
-        <!-- Key Financial Ratios (Horizontal Bars) -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <h3 class="text-base font-bold text-slate-900 mb-4">Behavioral Credit Risk Ratios</h3>
-          <div class="space-y-4 my-auto">
-            
-            <div>
-              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
-                <span>Essential Commitments (Utilities, Groceries, Rent, Education, Health)</span>
-                <span id="ratio-essential">0%</span>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-2">
-                <div id="bar-essential" class="bg-emerald-500 h-2 rounded-full" style="width: 0%"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
-                <span>Savings & Investments (MMFs, Saccos, Wealth)</span>
-                <span id="ratio-savings">0%</span>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-2">
-                <div id="bar-savings" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
-                <span>Luxury & Nightlife (Wines, Bars, Lounges)</span>
-                <span id="ratio-luxury">0%</span>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-2">
-                <div id="bar-luxury" class="bg-amber-500 h-2 rounded-full" style="width: 0%"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
-                <span>Debt Servicing Burden (Loan Repayments)</span>
-                <span id="ratio-debt">0%</span>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-2">
-                <div id="bar-debt" class="bg-purple-500 h-2 rounded-full" style="width: 0%"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
-                <span>Gambling / Sports Betting Expenditure</span>
-                <span id="ratio-gambling">0%</span>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-2">
-                <div id="bar-gambling" class="bg-rose-500 h-2 rounded-full" style="width: 0%"></div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-
-      <!-- 4. Score Factors (Positive vs Negative) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        <!-- Positive Factors -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 class="text-sm font-bold text-emerald-800 flex items-center mb-3">
-            <svg class="w-5 h-5 mr-1.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-            Positive Scoring Factors
-          </h3>
-          <ul id="positive-factors-list" class="space-y-2 text-xs text-slate-600"></ul>
-        </div>
-
-        <!-- Risk Factors & Flags -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 class="text-sm font-bold text-rose-800 flex items-center mb-3">
-            <svg class="w-5 h-5 mr-1.5 text-rose-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-            </svg>
-            Risk Factors & Overdraft Flags
-          </h3>
-          <ul id="risk-factors-list" class="space-y-2 text-xs text-slate-600"></ul>
-        </div>
-
-      </div>
-
-      <!-- 5. Detailed Transactions Table -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h3 class="text-base font-bold text-slate-900">Extracted & Classified Transactions</h3>
-            <p class="text-xs text-slate-400">All account numbers, phones and PII are redacted using SHA-256 tokens.</p>
+            <p class="text-sm font-bold text-emerald-900">Lipa na M-Pesa Payment Confirmed!</p>
+            <p id="payment-receipt-text" class="text-xs text-emerald-700">Receipt: M-Pesa Verified • Full statement report unlocked.</p>
           </div>
-          <div class="flex items-center space-x-3 w-full sm:w-auto">
-            <input type="text" id="tx-search-input" oninput="filterTransactions()" placeholder="Search counterparty or reference..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none w-full sm:w-60">
-            <select id="tx-category-filter" onchange="filterTransactions()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-              <option value="ALL">All Categories</option>
-            </select>
+        </div>
+        <div class="flex items-center space-x-2 w-full sm:w-auto">
+          <button onclick="downloadPdfReport()" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition flex items-center justify-center space-x-1">
+            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Save as PDF</span>
+          </button>
+          <button onclick="window.print()" class="px-3 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold shadow-sm transition">
+            🖨️ Print
+          </button>
+        </div>
+      </div>
+
+      <!-- PAYWALL CARD (Anchored on top when results are blurred) -->
+      <div id="paywall-card" class="bg-gradient-to-b from-white to-slate-50 rounded-2xl border-2 border-emerald-500 shadow-2xl p-6 sm:p-8 max-w-xl mx-auto text-center relative z-20 no-print">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl font-bold mb-3 shadow-inner">
+          🔒
+        </div>
+        <h2 class="text-xl font-bold text-slate-900">Unlock Full Credit Risk & Financial Report</h2>
+        <p class="text-xs text-slate-500 mt-1">
+          Statement analyzed successfully! Complete a one-time Lipa na M-Pesa payment to view your credit score, borrowing limit, and full transaction classification.
+        </p>
+        
+        <div class="my-5 p-4 bg-emerald-50/90 rounded-xl border border-emerald-200 flex items-center justify-between">
+          <div class="text-left">
+            <span class="text-xs text-emerald-800 font-medium">Report Access Fee</span>
+            <p class="text-xl font-black text-emerald-900">KES 50.00</p>
+          </div>
+          <div class="text-right">
+            <span class="text-xs font-bold text-emerald-800 bg-white px-2.5 py-1.5 rounded-lg border border-emerald-200 shadow-sm block">
+              Till Number: <span class="font-mono text-emerald-950 font-black">5008412</span>
+            </span>
           </div>
         </div>
 
-        <div class="overflow-x-auto max-h-96">
-          <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-            <thead class="bg-slate-50 text-slate-500 uppercase font-semibold sticky top-0">
-              <tr>
-                <th class="px-4 py-3">Reference / ID</th>
-                <th class="px-4 py-3">Type</th>
-                <th class="px-4 py-3">Narrative / Counterparty</th>
-                <th class="px-4 py-3">Category</th>
-                <th class="px-4 py-3">Amount (KES)</th>
-                <th class="px-4 py-3">Balance (KES)</th>
-                <th class="px-4 py-3">Engine</th>
-              </tr>
-            </thead>
-            <tbody id="tx-table-body" class="divide-y divide-slate-100 font-mono">
-              <!-- Dynamically rendered -->
-            </tbody>
-          </table>
+        <div class="space-y-3 text-left">
+          <label class="block text-xs font-semibold text-slate-700">Enter M-Pesa Phone Number for STK Push Prompt</label>
+          <div class="relative">
+            <input type="tel" id="paywall-phone" placeholder="07XXXXXXXX or 01XXXXXXXX" class="w-full px-4 py-3 pl-11 border border-slate-300 rounded-xl text-sm font-semibold tracking-wide focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <span class="absolute left-3.5 top-3 text-slate-400 font-bold text-sm">🇰🇪</span>
+          </div>
+
+          <button id="btn-stk-push" onclick="triggerStkPush()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2">
+            <span>📱 Pay KES 50 via M-Pesa STK Push</span>
+          </button>
         </div>
+
+        <!-- Waiting & Polling Box -->
+        <div id="stk-waiting-box" class="hidden mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-center">
+          <div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-amber-600 border-t-transparent mb-2"></div>
+          <p id="stk-status-text" class="text-xs font-bold text-amber-900">M-Pesa PIN prompt sent to your phone! Please enter your PIN.</p>
+          <p class="text-[11px] text-amber-700 mt-1">Listening for callback confirmation...</p>
+          <div class="mt-3 flex items-center justify-center space-x-3">
+            <button onclick="checkPaymentStatusManual()" class="px-3 py-1.5 bg-white border border-amber-300 rounded-lg text-xs font-semibold text-amber-800 hover:bg-amber-100 shadow-sm">
+              🔄 Check Status Now
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-3 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-400">
+          <span>Secured by Safaricom Daraja API</span>
+          <button onclick="triggerDemoUnlock()" class="text-slate-400 hover:text-slate-600 underline">
+            ⚡ Demo Unlock (Test Mode)
+          </button>
+        </div>
+      </div>
+
+      <!-- REPORT CONTENT WRAPPER (Blurred when locked, unblurred once paid) -->
+      <div id="report-content-wrapper" class="space-y-8 filter blur-md select-none pointer-events-none transition duration-500">
+
+        <!-- 1. Credit Score Hero Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            
+            <!-- Score Gauge / Circle -->
+            <div class="text-center md:border-r md:border-slate-200 pr-0 md:pr-6">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Financial Credit Score</p>
+              <div class="relative inline-flex items-center justify-center">
+                <span id="score-value" class="text-6xl font-black text-slate-900">--</span>
+                <span class="text-slate-400 font-bold ml-1 text-xl">/ 850</span>
+              </div>
+              <div class="mt-3">
+                <span id="tier-badge" class="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-800">
+                  --
+                </span>
+              </div>
+            </div>
+
+            <!-- Credit Limit & Key Metrics -->
+            <div class="space-y-4 md:border-r md:border-slate-200 px-0 md:px-6">
+              <div>
+                <p class="text-xs text-slate-500 font-medium">Recommended Micro-Loan / Credit Limit</p>
+                <p id="limit-value" class="text-2xl font-bold text-emerald-600">KES 0.00</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 font-medium">Scoring Confidence</p>
+                <div class="w-full bg-slate-100 rounded-full h-2.5 mt-1 overflow-hidden">
+                  <div id="confidence-bar" class="bg-emerald-500 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+                <p id="confidence-text" class="text-right text-xs text-slate-400 mt-0.5">0%</p>
+              </div>
+            </div>
+
+            <!-- Quick Risk Summary -->
+            <div class="space-y-2.5 pl-0 md:pl-2">
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Scoring Highlights</p>
+              <div id="summary-positive-pill" class="text-xs p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-100">
+                Positive credit habits verified
+              </div>
+              <div id="summary-risk-pill" class="text-xs p-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-100">
+                Risk flags under inspection
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 2. Cash Flow Stat Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Total Inflows</p>
+            <p id="stat-inflows" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Total Outflows</p>
+            <p id="stat-outflows" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Net Cash Flow</p>
+            <p id="stat-net" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Overdrafts / Fuliza</p>
+            <p id="stat-fuliza" class="text-lg font-bold text-rose-600 mt-1">0 (KES 0.00)</p>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm col-span-2 lg:col-span-1">
+            <p class="text-xs font-medium text-slate-500">Terminal Balance</p>
+            <p id="stat-balance" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+          </div>
+        </div>
+
+        <!-- 3. Charts & Habit Breakdown -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          <!-- Category Distribution (Donut Chart) -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-base font-bold text-slate-900 mb-4">Spending by Financial Category</h3>
+            <div class="h-64 relative">
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Key Financial Ratios (Horizontal Bars) -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <h3 class="text-base font-bold text-slate-900 mb-4">Behavioral Credit Risk Ratios</h3>
+            <div class="space-y-4 my-auto">
+              
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>Essential Commitments (Utilities, Groceries, Rent, Education, Health)</span>
+                  <span id="ratio-essential">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div id="bar-essential" class="bg-emerald-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>Savings & Investments (MMFs, Saccos, Wealth)</span>
+                  <span id="ratio-savings">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div id="bar-savings" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>Luxury & Nightlife (Wines, Bars, Lounges)</span>
+                  <span id="ratio-luxury">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div id="bar-luxury" class="bg-amber-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>Debt Servicing Burden (Loan Repayments)</span>
+                  <span id="ratio-debt">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div id="bar-debt" class="bg-purple-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>Gambling / Sports Betting Expenditure</span>
+                  <span id="ratio-gambling">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                  <div id="bar-gambling" class="bg-rose-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 4. Score Factors (Positive vs Negative) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Positive Factors -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-bold text-emerald-800 flex items-center mb-3">
+              <svg class="w-5 h-5 mr-1.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              Positive Scoring Factors
+            </h3>
+            <ul id="positive-factors-list" class="space-y-2 text-xs text-slate-600"></ul>
+          </div>
+
+          <!-- Risk Factors & Flags -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-bold text-rose-800 flex items-center mb-3">
+              <svg class="w-5 h-5 mr-1.5 text-rose-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              Risk Factors & Overdraft Flags
+            </h3>
+            <ul id="risk-factors-list" class="space-y-2 text-xs text-slate-600"></ul>
+          </div>
+
+        </div>
+
+        <!-- 5. Detailed Transactions Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Extracted & Classified Transactions</h3>
+              <p class="text-xs text-slate-400">All account numbers, phones and PII are redacted using SHA-256 tokens.</p>
+            </div>
+            <div class="flex items-center space-x-3 w-full sm:w-auto no-print">
+              <input type="text" id="tx-search-input" oninput="filterTransactions()" placeholder="Search counterparty or reference..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none w-full sm:w-60">
+              <select id="tx-category-filter" onchange="filterTransactions()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <option value="ALL">All Categories</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto max-h-96">
+            <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 uppercase font-semibold sticky top-0">
+                <tr>
+                  <th class="px-4 py-3">Reference / ID</th>
+                  <th class="px-4 py-3">Type</th>
+                  <th class="px-4 py-3">Narrative / Counterparty</th>
+                  <th class="px-4 py-3">Category</th>
+                  <th class="px-4 py-3">Amount (KES)</th>
+                  <th class="px-4 py-3">Balance (KES)</th>
+                  <th class="px-4 py-3">Engine</th>
+                </tr>
+              </thead>
+              <tbody id="tx-table-body" class="divide-y divide-slate-100 font-mono">
+                <!-- Dynamically rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -382,8 +487,8 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
   </main>
 
   <!-- Footer -->
-  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
-    Kenyan Financial Scorer & Statement Analyzer • FastAPI, LightGBM (100k Records) & Bank/M-Pesa Regex Engine
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 no-print">
+    Kenyan Financial Scorer & Statement Analyzer • Lipa na M-Pesa Online (Till 5008412) • 100k ML Categorization
   </footer>
 
   <!-- Frontend Logic -->
@@ -391,6 +496,9 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
     let currentTransactions = [];
     let categoryChartInstance = null;
     let activeStatementSource = "BANK STATEMENT";
+    let isReportUnlocked = false;
+    let currentCheckoutRequestId = null;
+    let stkPollingInterval = null;
 
     function switchStatementMode(mode) {
       const bankPanel = document.getElementById('tab-bank-panel');
@@ -501,7 +609,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       ].join("\n\n");
     }
 
-    // Sample Bank Statement Loader (creates CSV on the fly and posts to /api/v1/upload-bank)
+    // Sample Bank Statement Loader
     async function loadSampleBankData() {
       const sampleCsv = `Date,Narrative,Reference,Debit,Credit,Balance
 02/01/2026,SALARY CREDIT FROM ACME TECH LTD,REF82910,,135000.00,135000.00
@@ -539,7 +647,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       }
     }
 
-    // 1. Analyze Bank Statement (PDF or CSV)
+    // 1. Analyze Bank Statement
     async function analyzeBankStatement() {
       if (!bankFileInput.files.length) {
         alert("Please select a Bank statement (PDF or CSV) first, or click 'Load Sample Bank Statement'.");
@@ -649,6 +757,16 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       document.getElementById("results-section").classList.remove("hidden");
       document.getElementById("source-badge").innerText = activeStatementSource;
       document.getElementById("tx-count-badge").innerText = `${currentTransactions.length} transactions analyzed`;
+
+      // If not yet unlocked, enforce paywall and blur
+      if (!isReportUnlocked) {
+        document.getElementById("paywall-card").classList.remove("hidden");
+        document.getElementById("report-content-wrapper").className = "space-y-8 filter blur-md select-none pointer-events-none transition duration-500";
+        document.getElementById("payment-success-banner").classList.add("hidden");
+        document.getElementById("top-download-pdf-btn").classList.add("hidden");
+      } else {
+        unlockReport("PREVIOUSLY_VERIFIED");
+      }
 
       // 1. Credit Score Card
       const scoreEl = document.getElementById("score-value");
@@ -797,6 +915,159 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       });
 
       renderTable(filtered);
+    }
+
+    // ==========================================
+    // PAYWALL & LIP NA M-PESA STK PUSH WORKFLOW
+    // ==========================================
+
+    async function triggerStkPush() {
+      const phoneInput = document.getElementById("paywall-phone");
+      const phone = phoneInput.value.trim();
+
+      if (!phone || phone.length < 9) {
+        alert("Please enter a valid Kenyan Safaricom phone number (e.g. 0712345678 or 0112345678).");
+        phoneInput.focus();
+        return;
+      }
+
+      const btn = document.getElementById("btn-stk-push");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></span> Initiating M-Pesa STK Push...`;
+
+      try {
+        const res = await fetch("/api/v1/mpesa/stk-push", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, reference: "CreditReport" })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Failed to trigger STK push prompt.");
+        }
+
+        currentCheckoutRequestId = data.checkout_request_id;
+        document.getElementById("stk-waiting-box").classList.remove("hidden");
+        document.getElementById("stk-status-text").innerText = `PIN prompt sent to ${phone}! Enter your M-Pesa PIN on your phone to complete payment.`;
+
+        // Start automatic polling every 2.5 seconds
+        if (stkPollingInterval) clearInterval(stkPollingInterval);
+        stkPollingInterval = setInterval(pollPaymentStatus, 2500);
+
+      } catch (err) {
+        alert("M-Pesa STK Push Error: " + err.message);
+        btn.disabled = false;
+        btn.innerHTML = `<span>📱 Pay KES 50 via M-Pesa STK Push</span>`;
+      }
+    }
+
+    async function pollPaymentStatus() {
+      if (!currentCheckoutRequestId) return;
+      try {
+        const res = await fetch(`/api/v1/mpesa/check-payment/${currentCheckoutRequestId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.status === "COMPLETED") {
+          clearInterval(stkPollingInterval);
+          unlockReport(data.mpesa_receipt || "VERIFIED");
+        } else if (data.status === "FAILED") {
+          clearInterval(stkPollingInterval);
+          alert("Payment was not completed: " + (data.result_desc || "Transaction declined or cancelled by user."));
+          resetPaywallButton();
+        }
+      } catch (e) {
+        console.error("Polling error:", e);
+      }
+    }
+
+    async function checkPaymentStatusManual() {
+      if (!currentCheckoutRequestId) {
+        alert("Please initiate an STK push first.");
+        return;
+      }
+      try {
+        const res = await fetch(`/api/v1/mpesa/check-payment/${currentCheckoutRequestId}`);
+        const data = await res.json();
+        if (data.status === "COMPLETED") {
+          if (stkPollingInterval) clearInterval(stkPollingInterval);
+          unlockReport(data.mpesa_receipt || "VERIFIED");
+        } else {
+          alert("Payment status: " + (data.result_desc || data.status || "Waiting for payment..."));
+        }
+      } catch (e) {
+        alert("Error checking status: " + e.message);
+      }
+    }
+
+    // Demo unlock for fast testing
+    async function triggerDemoUnlock() {
+      const demoId = currentCheckoutRequestId || ("DEMO_" + Date.now());
+      try {
+        const res = await fetch(`/api/v1/mpesa/demo-approve/${demoId}`, { method: "POST" });
+        const data = await res.json();
+        if (stkPollingInterval) clearInterval(stkPollingInterval);
+        unlockReport(data.mpesa_receipt || "DEMO_UNLOCKED");
+      } catch (e) {
+        if (stkPollingInterval) clearInterval(stkPollingInterval);
+        unlockReport("DEMO_UNLOCKED");
+      }
+    }
+
+    function unlockReport(receiptCode) {
+      isReportUnlocked = true;
+
+      // Hide paywall card
+      const paywallCard = document.getElementById("paywall-card");
+      paywallCard.classList.add("hidden");
+
+      // Remove blur and lock
+      const reportWrapper = document.getElementById("report-content-wrapper");
+      reportWrapper.className = "space-y-8 transition duration-500";
+
+      // Show success banner and download button
+      document.getElementById("payment-success-banner").classList.remove("hidden");
+      document.getElementById("payment-receipt-text").innerText = `Receipt: ${receiptCode} • Lipa na M-Pesa verified. Full report unlocked.`;
+      document.getElementById("top-download-pdf-btn").classList.remove("hidden");
+
+      // Scroll smoothly to top of results
+      window.scrollTo({ top: document.getElementById("results-section").offsetTop - 40, behavior: 'smooth' });
+    }
+
+    function resetPaywallButton() {
+      document.getElementById("stk-waiting-box").classList.add("hidden");
+      const btn = document.getElementById("btn-stk-push");
+      btn.disabled = false;
+      btn.innerHTML = `<span>📱 Pay KES 50 via M-Pesa STK Push</span>`;
+    }
+
+    // ==========================================
+    // EXPORT REPORT AS PDF
+    // ==========================================
+
+    function downloadPdfReport() {
+      const element = document.getElementById("report-content-wrapper");
+      const btn = document.getElementById("top-download-pdf-btn");
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span>Generating PDF...</span>`;
+
+      const opt = {
+        margin: [8, 8, 8, 8],
+        filename: 'Kenyan_Financial_Credit_Report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        btn.innerHTML = originalText;
+      }).catch(err => {
+        console.error("PDF generation failed:", err);
+        btn.innerHTML = originalText;
+        // Fallback to native print dialog
+        window.print();
+      });
     }
   </script>
 </body>
