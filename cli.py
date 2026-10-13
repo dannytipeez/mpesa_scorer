@@ -12,7 +12,7 @@ import app as app_mod
 
 def main():
     parser = argparse.ArgumentParser(
-        description="M-Pesa & Bank Statement Terminal Analyzer & Credit Scorer"
+        description="AFRIQAN CREDIT SCORER - Financial Statement Analyzer & Risk Engine"
     )
     parser.add_argument("file_path", help="Path to your M-Pesa or Bank statement (PDF or CSV)")
     parser.add_argument(
@@ -137,7 +137,7 @@ def main():
 
     # 5. Print Terminal Output
     print("\n" + "=" * 65)
-    print("      STATEMENT ANALYSIS & CREDIT RISK REPORT")
+    print("      AFRIQAN CREDIT SCORER - FINANCIAL RISK REPORT")
     print("=" * 65)
     print(f"Statement File : {os.path.basename(args.file_path)} ({detected_type})")
     print(f"Transactions   : {len(transactions)} extracted")

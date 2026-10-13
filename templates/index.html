@@ -3,23 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kenyan Financial Scorer & Statement Analyzer (M-Pesa & Bank)</title>
+  <title>AFRIQAN CREDIT SCORER | AI Financial Statement & Credit Risk Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- html2pdf.js for Client-Side PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            afriqan: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              gold: '#d97706',
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    .brand-green { color: #008751; }
-    .bg-brand-green { background-color: #008751; }
-    .bg-brand-green:hover { background-color: #006b40; }
-    .border-brand-green { border-color: #008751; }
+    /* Glassmorphism primitives */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.4);
+    }
+    
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    }
 
-    /* Print styling: Hides UI chrome and renders full unblurred report */
+    .glass-pill {
+      background: rgba(241, 245, 249, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .glass-paywall {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.9);
+    }
+
+    .glass-input {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(203, 213, 225, 0.8);
+    }
+
+    /* Print styling: Renders clean unblurred report without navigation */
     @media print {
-      header, footer, #tab-bank-panel, #tab-mpesa-pdf-panel, #tab-mpesa-sms-panel,
-      .no-print, #paywall-card, #tx-search-input, #tx-category-filter, #loading-spinner {
+      header, footer, #tab-nav-wrapper, #tab-bank-panel, #tab-mpesa-pdf-panel, #tab-mpesa-sms-panel,
+      .no-print, #paywall-card, #tx-search-input, #tx-category-filter, #loading-spinner, .ambient-orb {
         display: none !important;
       }
       #report-content-wrapper {
@@ -30,27 +91,45 @@
       body {
         background-color: white !important;
       }
+      .glass-card {
+        background: white !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+      }
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+<body class="bg-gradient-to-br from-slate-50 via-slate-100/70 to-emerald-50/40 text-slate-800 min-h-screen flex flex-col font-sans relative antialiased selection:bg-emerald-500 selection:text-white">
+
+  <!-- Ambient Decorative Glowing Orbs for Glassmorphism Refraction -->
+  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none ambient-orb">
+    <div class="absolute -top-32 -right-32 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl animate-pulse"></div>
+    <div class="absolute top-1/4 -left-32 w-96 h-96 bg-teal-400/15 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-32 right-1/4 w-96 h-96 bg-cyan-400/15 rounded-full blur-3xl"></div>
+  </div>
 
   <!-- Header -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+  <header class="glass-nav sticky top-0 z-30 shadow-sm no-print">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-bold text-xl shadow-md">
-          🇰🇪
+      <div class="flex items-center space-x-3.5">
+        <!-- Afriqan Monogram Logo -->
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 p-0.5 shadow-lg shadow-emerald-500/20">
+          <div class="w-full h-full bg-slate-900/90 rounded-[14px] flex items-center justify-center text-white font-black text-xl tracking-tighter">
+            A
+          </div>
         </div>
         <div>
-          <h1 class="text-xl font-bold text-slate-900 leading-tight">Kenyan Financial Scorer & Statement Analyzer</h1>
-          <p class="text-xs text-slate-500">M-Pesa & Bank Statements (PDF/CSV) • 100k ML Categorization Pipeline • Credit Risk Scoring</p>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">AFRIQAN <span class="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">CREDIT SCORER</span></h1>
+            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 rounded-full border border-emerald-500/20">v2.0 AI</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium">Pan-African Mobile Money & Bank Statement Risk Intelligence</p>
         </div>
       </div>
       <div class="flex items-center space-x-3">
-        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
-          AI Model Active (100k records)
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold glass-pill text-emerald-800 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-ping"></span>
+          100k ML Pipeline Active
         </span>
       </div>
     </div>
@@ -59,91 +138,101 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
 
-    <!-- Upload & Input Selection Tabs -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8 no-print">
+    <!-- Upload & Input Selection Section -->
+    <div class="glass-card rounded-3xl p-6 sm:p-8 mb-8 no-print">
       
-      <!-- Primary Tabs Navigation: Bank vs M-Pesa PDF vs M-Pesa SMS -->
-      <div class="border-b border-slate-200 bg-slate-50/70 px-4 sm:px-6 pt-3 flex flex-wrap gap-2 sm:gap-6">
-        <button id="tab-bank-btn" onclick="switchStatementMode('bank')" class="pb-3 px-1 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-700 transition flex items-center">
-          <span class="mr-1.5 text-base">🏦</span> Bank Statement <span class="ml-1 text-[11px] font-normal text-slate-500">(PDF / CSV)</span>
+      <!-- Glassmorphic Segmented Tabs -->
+      <div id="tab-nav-wrapper" class="glass-pill p-1.5 rounded-2xl flex flex-wrap gap-1.5 max-w-2xl mx-auto mb-6 shadow-inner">
+        <button id="tab-bank-btn" onclick="switchStatementMode('bank')" class="flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl bg-white text-emerald-800 shadow-sm transition-all duration-200 flex items-center justify-center space-x-2">
+          <span>🏦</span>
+          <span>Bank Statement</span>
+          <span class="text-[10px] opacity-75 font-normal hidden sm:inline">(PDF / CSV)</span>
         </button>
-        <button id="tab-mpesa-pdf-btn" onclick="switchStatementMode('mpesa-pdf')" class="pb-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center">
-          <span class="mr-1.5 text-base">📱</span> M-Pesa Statement <span class="ml-1 text-[11px] font-normal text-slate-500">(PDF)</span>
+        <button id="tab-mpesa-pdf-btn" onclick="switchStatementMode('mpesa-pdf')" class="flex-1 py-2.5 px-4 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 hover:bg-white/50 transition-all duration-200 flex items-center justify-center space-x-2">
+          <span>📱</span>
+          <span>M-Pesa Statement</span>
+          <span class="text-[10px] opacity-75 font-normal hidden sm:inline">(PDF)</span>
         </button>
-        <button id="tab-mpesa-sms-btn" onclick="switchStatementMode('mpesa-sms')" class="pb-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center">
-          <span class="mr-1.5 text-base">💬</span> M-Pesa SMS Texts <span class="ml-1 text-[11px] font-normal text-slate-500">(Paste)</span>
+        <button id="tab-mpesa-sms-btn" onclick="switchStatementMode('mpesa-sms')" class="flex-1 py-2.5 px-4 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 hover:bg-white/50 transition-all duration-200 flex items-center justify-center space-x-2">
+          <span>💬</span>
+          <span>M-Pesa SMS</span>
+          <span class="text-[10px] opacity-75 font-normal hidden sm:inline">(Paste)</span>
         </button>
       </div>
 
       <!-- Tab 1: Bank Statement (PDF & CSV) -->
-      <div id="tab-bank-panel" class="p-6">
+      <div id="tab-bank-panel">
         <div class="max-w-2xl mx-auto">
           <div class="mb-4 text-center">
-            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mb-2">
-              Supported: Equity Bank, KCB, Co-op Bank, NCBA, Stanbic, Absa, DTB, StanChart, I&M, Family Bank
+            <span class="inline-block px-3 py-1 rounded-full text-[11px] font-semibold text-slate-500 bg-white/60 border border-slate-200/80 shadow-xs">
+              Supported: Equity, KCB, Co-op Bank, NCBA, Stanbic, Absa, DTB, StanChart, I&M, Family Bank
             </span>
           </div>
 
-          <div id="bank-drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-emerald-500 hover:bg-emerald-50/30 transition cursor-pointer">
-            <svg class="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <p class="text-sm font-medium text-slate-700 mb-1">Drag and drop your Bank Statement (PDF or CSV)</p>
-            <p class="text-xs text-slate-400 mb-4">Official e-statements, internet banking exports, or CSV downloads</p>
+          <div id="bank-drop-zone" class="border-2 border-dashed border-emerald-300/80 rounded-2xl p-8 sm:p-10 text-center hover:border-emerald-500 hover:bg-emerald-50/40 transition-all duration-200 cursor-pointer bg-white/40">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center mb-3.5 shadow-xs">
+              <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <p class="text-sm font-bold text-slate-800 mb-1">Drag and drop your Bank Statement (PDF or CSV)</p>
+            <p class="text-xs text-slate-400 mb-4">Official e-statements, internet banking exports, or CSV transactions</p>
             <input type="file" id="bank-file-input" accept=".pdf,.csv" class="hidden">
-            <button onclick="document.getElementById('bank-file-input').click()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition">
-              Select Bank Statement (PDF or CSV)
+            <button onclick="document.getElementById('bank-file-input').click()" class="px-5 py-2.5 bg-white border border-slate-300/80 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition">
+              Select Bank Statement File
             </button>
-            <p id="bank-file-name" class="mt-3 text-xs font-semibold text-emerald-600 hidden"></p>
+            <p id="bank-file-name" class="mt-3 text-xs font-bold text-emerald-600 hidden"></p>
           </div>
 
           <div class="mt-4 flex flex-col sm:flex-row items-center gap-3">
             <div class="w-full sm:flex-1">
-              <label class="block text-xs font-medium text-slate-600 mb-1">Bank PDF Password (National ID or KRA PIN)</label>
-              <input type="password" id="bank-password" placeholder="e.g. 12345678 or A012345678Z (leave blank if CSV / unencrypted)" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Bank PDF Password (National ID or KRA PIN)</label>
+              <input type="password" id="bank-password" placeholder="e.g. 12345678 or A012345678Z (leave blank if CSV / unencrypted)" class="w-full px-4 py-2.5 glass-input rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
-            <button id="btn-analyze-bank" onclick="analyzeBankStatement()" class="w-full sm:w-auto mt-2 sm:mt-5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm shadow transition flex items-center justify-center">
-              <span>Analyze Bank Statement</span>
+            <button id="btn-analyze-bank" onclick="analyzeBankStatement()" class="w-full sm:w-auto mt-2 sm:mt-5 px-7 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition flex items-center justify-center">
+              <span>Analyze Statement</span>
             </button>
           </div>
 
-          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Want to test without a file?</span>
-            <button onclick="loadSampleBankData()" class="text-emerald-600 hover:underline font-semibold flex items-center">
-              ⚡ Load Sample Kenyan Bank Statement (Demo)
+          <div class="mt-4 pt-3 border-t border-slate-200/50 flex items-center justify-between text-xs text-slate-500">
+            <span>Want to test immediately?</span>
+            <button onclick="loadSampleBankData()" class="text-emerald-700 hover:text-emerald-800 font-bold flex items-center space-x-1">
+              <span>⚡ Load Sample Bank Statement (Demo)</span>
             </button>
           </div>
         </div>
       </div>
 
       <!-- Tab 2: M-Pesa PDF Statement -->
-      <div id="tab-mpesa-pdf-panel" class="p-6 hidden">
+      <div id="tab-mpesa-pdf-panel" class="hidden">
         <div class="max-w-2xl mx-auto">
           <div class="mb-4 text-center">
-            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mb-2">
+            <span class="inline-block px-3 py-1 rounded-full text-[11px] font-semibold text-slate-500 bg-white/60 border border-slate-200/80 shadow-xs">
               Supported: Safaricom M-Pesa Official Monthly / Custom e-Statements
             </span>
           </div>
 
-          <div id="mpesa-drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-emerald-500 hover:bg-emerald-50/30 transition cursor-pointer">
-            <svg class="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-            </svg>
-            <p class="text-sm font-medium text-slate-700 mb-1">Drag and drop your Safaricom M-Pesa PDF statement here</p>
+          <div id="mpesa-drop-zone" class="border-2 border-dashed border-emerald-300/80 rounded-2xl p-8 sm:p-10 text-center hover:border-emerald-500 hover:bg-emerald-50/40 transition-all duration-200 cursor-pointer bg-white/40">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center mb-3.5 shadow-xs">
+              <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              </svg>
+            </div>
+            <p class="text-sm font-bold text-slate-800 mb-1">Drag and drop your Safaricom M-Pesa PDF statement here</p>
             <p class="text-xs text-slate-400 mb-4">Exported e-statements from Safaricom M-Pesa App or Customer Care</p>
             <input type="file" id="mpesa-file-input" accept=".pdf" class="hidden">
-            <button onclick="document.getElementById('mpesa-file-input').click()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition">
+            <button onclick="document.getElementById('mpesa-file-input').click()" class="px-5 py-2.5 bg-white border border-slate-300/80 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition">
               Select M-Pesa PDF File
             </button>
-            <p id="mpesa-file-name" class="mt-3 text-xs font-semibold text-emerald-600 hidden"></p>
+            <p id="mpesa-file-name" class="mt-3 text-xs font-bold text-emerald-600 hidden"></p>
           </div>
 
           <div class="mt-4 flex flex-col sm:flex-row items-center gap-3">
             <div class="w-full sm:flex-1">
-              <label class="block text-xs font-medium text-slate-600 mb-1">M-Pesa PDF Password (National ID / Passport Number)</label>
-              <input type="password" id="mpesa-password" placeholder="e.g. 12345678 (leave blank if not password protected)" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">M-Pesa PDF Password (National ID / Passport Number)</label>
+              <input type="password" id="mpesa-password" placeholder="e.g. 12345678 (leave blank if not password protected)" class="w-full px-4 py-2.5 glass-input rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
-            <button id="btn-analyze-mpesa-pdf" onclick="analyzeMpesaPdf()" class="w-full sm:w-auto mt-2 sm:mt-5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm shadow transition flex items-center justify-center">
+            <button id="btn-analyze-mpesa-pdf" onclick="analyzeMpesaPdf()" class="w-full sm:w-auto mt-2 sm:mt-5 px-7 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition flex items-center justify-center">
               <span>Analyze M-Pesa PDF</span>
             </button>
           </div>
@@ -151,18 +240,18 @@
       </div>
 
       <!-- Tab 3: M-Pesa SMS Messages (Paste) -->
-      <div id="tab-mpesa-sms-panel" class="p-6 hidden">
+      <div id="tab-mpesa-sms-panel" class="hidden">
         <div class="max-w-3xl mx-auto">
-          <label class="block text-xs font-medium text-slate-600 mb-1">Paste M-Pesa SMS Notifications (One message per block or multi-line)</label>
-          <textarea id="sms-text-input" rows="6" placeholder="Paste your M-Pesa SMS texts here, e.g.:
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Paste M-Pesa SMS Notifications (One message per block or multi-line)</label>
+          <textarea id="sms-text-input" rows="6" placeholder="Paste your M-Pesa SMS notifications here, e.g.:
 SH2819DK3L Confirmed. Ksh1,500.00 paid to KPLC PREPAID. for account 482910394 on 12/03/26 at 4:15 PM. New M-PESA balance is Ksh4,210.00. Transaction cost, Ksh23.00.
 
-LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 15/05/26 at 9:45 PM. New M-PESA balance is Ksh8,500.00. Transaction cost, Ksh0.00." class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 15/05/26 at 9:45 PM. New M-PESA balance is Ksh8,500.00. Transaction cost, Ksh0.00." class="w-full px-4 py-3 glass-input rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
           <div class="mt-3 flex justify-between items-center">
-            <button onclick="loadSampleSms()" class="text-xs text-emerald-600 hover:underline font-semibold flex items-center">
-              ⚡ Load Sample Kenyan SMS Messages
+            <button onclick="loadSampleSms()" class="text-xs text-emerald-700 hover:text-emerald-800 font-bold flex items-center space-x-1">
+              <span>⚡ Load Sample Kenyan SMS Messages</span>
             </button>
-            <button id="btn-analyze-sms" onclick="analyzeSms()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm shadow transition">
+            <button id="btn-analyze-sms" onclick="analyzeSms()" class="px-7 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition">
               Analyze Messages
             </button>
           </div>
@@ -172,25 +261,25 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
     </div>
 
     <!-- Spinner Loading Overlay -->
-    <div id="loading-spinner" class="hidden text-center py-12 no-print">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-emerald-600"></div>
-      <p id="loading-message" class="mt-4 text-sm font-medium text-slate-600">Parsing statement & running 100k ML categorization pipeline...</p>
+    <div id="loading-spinner" class="hidden text-center py-14 no-print">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-emerald-200 border-t-emerald-600"></div>
+      <p id="loading-message" class="mt-4 text-sm font-semibold text-slate-700">Afriqan AI Engine running 100k categorization & risk models...</p>
     </div>
 
     <!-- Results Section (Hidden until analyzed) -->
     <div id="results-section" class="hidden space-y-6">
 
       <!-- Statement Origin Badge & PDF Export Action -->
-      <div class="flex items-center justify-between bg-white px-5 py-3.5 rounded-xl border border-slate-200 shadow-sm no-print">
-        <div class="flex items-center space-x-2">
-          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Statement Source:</span>
-          <span id="source-badge" class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
+      <div class="glass-card px-6 py-4 rounded-2xl flex items-center justify-between no-print shadow-sm">
+        <div class="flex items-center space-x-3">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Report Source:</span>
+          <span id="source-badge" class="px-3 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-800 border border-emerald-500/20">
             BANK STATEMENT
           </span>
-          <span id="tx-count-badge" class="text-xs text-slate-500 font-medium ml-2">10 transactions analyzed</span>
+          <span id="tx-count-badge" class="text-xs text-slate-500 font-medium">10 transactions categorized</span>
         </div>
-        <div class="flex items-center space-x-2">
-          <button id="top-download-pdf-btn" onclick="downloadPdfReport()" class="hidden px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition flex items-center space-x-1.5">
+        <div>
+          <button id="top-download-pdf-btn" onclick="downloadPdfReport()" class="hidden px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition flex items-center space-x-1.5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             <span>Download Official PDF</span>
           </button>
@@ -198,75 +287,77 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       </div>
 
       <!-- Payment Confirmation Success Banner (Visible upon payment completion) -->
-      <div id="payment-success-banner" class="hidden bg-emerald-50 border border-emerald-300 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 no-print">
-        <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow">
+      <div id="payment-success-banner" class="hidden glass-card border-emerald-500/40 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 no-print bg-emerald-50/60">
+        <div class="flex items-center space-x-3.5">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-emerald-500/30">
             ✓
           </div>
           <div>
-            <p class="text-sm font-bold text-emerald-900">Lipa na M-Pesa Payment Confirmed!</p>
-            <p id="payment-receipt-text" class="text-xs text-emerald-700">Receipt: M-Pesa Verified • Full statement report unlocked.</p>
+            <p class="text-sm font-extrabold text-emerald-950">Afriqan Credit Report Unlocked</p>
+            <p id="payment-receipt-text" class="text-xs text-emerald-800 font-medium">Receipt: M-Pesa Verified • Full statement risk assessment unlocked.</p>
           </div>
         </div>
-        <div class="flex items-center space-x-2 w-full sm:w-auto">
-          <button onclick="downloadPdfReport()" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow transition flex items-center justify-center space-x-1">
-            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <div class="flex items-center space-x-2.5 w-full sm:w-auto">
+          <button onclick="downloadPdfReport()" class="flex-1 sm:flex-none px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             <span>Save as PDF</span>
           </button>
-          <button onclick="window.print()" class="px-3 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold shadow-sm transition">
+          <button onclick="window.print()" class="px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition">
             🖨️ Print
           </button>
         </div>
       </div>
 
-      <!-- PAYWALL CARD (Anchored on top when results are blurred) -->
-      <div id="paywall-card" class="bg-gradient-to-b from-white to-slate-50 rounded-2xl border-2 border-emerald-500 shadow-2xl p-6 sm:p-8 max-w-xl mx-auto text-center relative z-20 no-print">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl font-bold mb-3 shadow-inner">
+      <!-- GLASSMORPHISM PAYWALL CARD -->
+      <div id="paywall-card" class="glass-paywall rounded-3xl p-6 sm:p-9 max-w-xl mx-auto text-center relative z-20 no-print my-4">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center text-2xl font-black mb-4 shadow-lg shadow-emerald-500/25">
           🔒
         </div>
-        <h2 class="text-xl font-bold text-slate-900">Unlock Full Credit Risk & Financial Report</h2>
-        <p class="text-xs text-slate-500 mt-1">
-          Statement analyzed successfully! Complete a one-time Lipa na M-Pesa payment to view your credit score, borrowing limit, and full transaction classification.
+        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Unlock Full Afriqan Credit Report</h2>
+        <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+          Statement analyzed successfully. Complete a quick Lipa na M-Pesa payment to view your credit score, borrowing limit, and behavioral ratios.
         </p>
         
-        <div class="my-5 p-4 bg-emerald-50/90 rounded-xl border border-emerald-200 flex items-center justify-between">
+        <div class="my-6 p-4 glass-card rounded-2xl flex items-center justify-between border border-emerald-400/40">
           <div class="text-left">
-            <span class="text-xs text-emerald-800 font-medium">Report Access Fee</span>
-            <p class="text-xl font-black text-emerald-900">KES 50.00</p>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Report Unlock Fee</span>
+            <p class="text-2xl font-black text-slate-900">KES 50.00</p>
           </div>
           <div class="text-right">
-            <span class="text-xs font-bold text-emerald-800 bg-white px-2.5 py-1.5 rounded-lg border border-emerald-200 shadow-sm block">
+            <span class="text-xs font-bold text-emerald-900 bg-white/90 px-3 py-1.5 rounded-xl border border-emerald-200/80 shadow-xs inline-block">
               Till Number: <span class="font-mono text-emerald-950 font-black">5008412</span>
             </span>
           </div>
         </div>
 
-        <div class="space-y-3 text-left">
-          <label class="block text-xs font-semibold text-slate-700">Enter M-Pesa Phone Number for STK Push Prompt</label>
+        <div class="space-y-3.5 text-left">
+          <label class="block text-xs font-bold text-slate-700">Enter M-Pesa Phone Number for PIN Prompt</label>
           <div class="relative">
-            <input type="tel" id="paywall-phone" placeholder="07XXXXXXXX or 01XXXXXXXX" class="w-full px-4 py-3 pl-11 border border-slate-300 rounded-xl text-sm font-semibold tracking-wide focus:outline-none focus:ring-2 focus:ring-emerald-500">
-            <span class="absolute left-3.5 top-3 text-slate-400 font-bold text-sm">🇰🇪</span>
+            <input type="tel" id="paywall-phone" placeholder="07XXXXXXXX or 01XXXXXXXX" class="w-full px-4 py-3.5 pl-11 glass-input rounded-xl text-sm font-bold tracking-wide focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-900">
+            <span class="absolute left-3.5 top-3.5 text-slate-400 font-bold text-base">🇰🇪</span>
           </div>
 
-          <button id="btn-stk-push" onclick="triggerStkPush()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2">
+          <button id="btn-stk-push" onclick="triggerStkPush()" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-600/25 transition flex items-center justify-center space-x-2">
             <span>📱 Pay KES 50 via M-Pesa STK Push</span>
           </button>
         </div>
 
-        <!-- Waiting & Polling Box -->
-        <div id="stk-waiting-box" class="hidden mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-center">
+        <!-- Waiting & Polling Status Box -->
+        <div id="stk-waiting-box" class="hidden mt-4 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-center backdrop-blur-md">
           <div class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-amber-600 border-t-transparent mb-2"></div>
-          <p id="stk-status-text" class="text-xs font-bold text-amber-900">M-Pesa PIN prompt sent to your phone! Please enter your PIN.</p>
-          <p class="text-[11px] text-amber-700 mt-1">Listening for callback confirmation...</p>
-          <div class="mt-3 flex items-center justify-center space-x-3">
-            <button onclick="checkPaymentStatusManual()" class="px-3 py-1.5 bg-white border border-amber-300 rounded-lg text-xs font-semibold text-amber-800 hover:bg-amber-100 shadow-sm">
+          <p id="stk-status-text" class="text-xs font-bold text-amber-900">PIN prompt sent to your phone! Please enter your M-Pesa PIN.</p>
+          <p class="text-[11px] text-amber-700 mt-1">Listening for Safaricom confirmation callback...</p>
+          <div class="mt-3">
+            <button onclick="checkPaymentStatusManual()" class="px-4 py-1.5 bg-white border border-amber-300 rounded-lg text-xs font-bold text-amber-800 hover:bg-amber-100 shadow-xs">
               🔄 Check Status Now
             </button>
           </div>
         </div>
 
-        <div class="mt-5 pt-3 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-400">
-          <span>Secured by Safaricom Daraja API</span>
+        <div class="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+          <span class="flex items-center space-x-1">
+            <span>🛡️ Secured by Safaricom Daraja API</span>
+          </span>
           <button onclick="triggerDemoUnlock()" class="text-slate-400 hover:text-slate-600 underline">
             ⚡ Demo Unlock (Test Mode)
           </button>
@@ -277,45 +368,45 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       <div id="report-content-wrapper" class="space-y-8 filter blur-md select-none pointer-events-none transition duration-500">
 
         <!-- 1. Credit Score Hero Card -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <div class="glass-card rounded-3xl p-6 sm:p-9">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
             
-            <!-- Score Gauge / Circle -->
-            <div class="text-center md:border-r md:border-slate-200 pr-0 md:pr-6">
-              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Financial Credit Score</p>
-              <div class="relative inline-flex items-center justify-center">
-                <span id="score-value" class="text-6xl font-black text-slate-900">--</span>
-                <span class="text-slate-400 font-bold ml-1 text-xl">/ 850</span>
+            <!-- Score Gauge -->
+            <div class="text-center md:border-r md:border-slate-200/70 pr-0 md:pr-6">
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Afriqan Credit Score</p>
+              <div class="relative inline-flex items-center justify-center my-2">
+                <span id="score-value" class="text-6xl sm:text-7xl font-black text-slate-900 tracking-tight">--</span>
+                <span class="text-slate-400 font-bold ml-1.5 text-xl">/ 850</span>
               </div>
-              <div class="mt-3">
-                <span id="tier-badge" class="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-800">
+              <div class="mt-2">
+                <span id="tier-badge" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-800 shadow-xs">
                   --
                 </span>
               </div>
             </div>
 
             <!-- Credit Limit & Key Metrics -->
-            <div class="space-y-4 md:border-r md:border-slate-200 px-0 md:px-6">
+            <div class="space-y-4 md:border-r md:border-slate-200/70 px-0 md:px-6">
               <div>
-                <p class="text-xs text-slate-500 font-medium">Recommended Micro-Loan / Credit Limit</p>
-                <p id="limit-value" class="text-2xl font-bold text-emerald-600">KES 0.00</p>
+                <p class="text-xs text-slate-500 font-semibold">Recommended Micro-Loan Borrowing Limit</p>
+                <p id="limit-value" class="text-3xl font-black text-emerald-600 mt-0.5">KES 0.00</p>
               </div>
               <div>
-                <p class="text-xs text-slate-500 font-medium">Scoring Confidence</p>
-                <div class="w-full bg-slate-100 rounded-full h-2.5 mt-1 overflow-hidden">
-                  <div id="confidence-bar" class="bg-emerald-500 h-2.5 rounded-full" style="width: 0%"></div>
+                <p class="text-xs text-slate-500 font-semibold">Risk Engine Scoring Confidence</p>
+                <div class="w-full bg-slate-200/70 rounded-full h-3 mt-1.5 overflow-hidden p-0.5">
+                  <div id="confidence-bar" class="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
                 </div>
-                <p id="confidence-text" class="text-right text-xs text-slate-400 mt-0.5">0%</p>
+                <p id="confidence-text" class="text-right text-xs text-slate-400 font-bold mt-1">0% Confidence</p>
               </div>
             </div>
 
             <!-- Quick Risk Summary -->
             <div class="space-y-2.5 pl-0 md:pl-2">
-              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Scoring Highlights</p>
-              <div id="summary-positive-pill" class="text-xs p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-100">
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Afriqan Risk Indicators</p>
+              <div id="summary-positive-pill" class="text-xs p-3 rounded-xl bg-emerald-50/80 text-emerald-900 border border-emerald-200 font-medium">
                 Positive credit habits verified
               </div>
-              <div id="summary-risk-pill" class="text-xs p-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-100">
+              <div id="summary-risk-pill" class="text-xs p-3 rounded-xl bg-amber-50/80 text-amber-900 border border-amber-200 font-medium">
                 Risk flags under inspection
               </div>
             </div>
@@ -325,90 +416,90 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
 
         <!-- 2. Cash Flow Stat Cards -->
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Total Inflows</p>
-            <p id="stat-inflows" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+          <div class="glass-card p-5 rounded-2xl">
+            <p class="text-xs font-semibold text-slate-400">Total Inflows</p>
+            <p id="stat-inflows" class="text-lg sm:text-xl font-black text-slate-900 mt-1">KES 0.00</p>
           </div>
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Total Outflows</p>
-            <p id="stat-outflows" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+          <div class="glass-card p-5 rounded-2xl">
+            <p class="text-xs font-semibold text-slate-400">Total Outflows</p>
+            <p id="stat-outflows" class="text-lg sm:text-xl font-black text-slate-900 mt-1">KES 0.00</p>
           </div>
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Net Cash Flow</p>
-            <p id="stat-net" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+          <div class="glass-card p-5 rounded-2xl">
+            <p class="text-xs font-semibold text-slate-400">Net Cash Flow</p>
+            <p id="stat-net" class="text-lg sm:text-xl font-black text-slate-900 mt-1">KES 0.00</p>
           </div>
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Overdrafts / Fuliza</p>
-            <p id="stat-fuliza" class="text-lg font-bold text-rose-600 mt-1">0 (KES 0.00)</p>
+          <div class="glass-card p-5 rounded-2xl">
+            <p class="text-xs font-semibold text-slate-400">Overdrafts / Fuliza</p>
+            <p id="stat-fuliza" class="text-lg sm:text-xl font-black text-rose-600 mt-1">0 (KES 0.00)</p>
           </div>
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm col-span-2 lg:col-span-1">
-            <p class="text-xs font-medium text-slate-500">Terminal Balance</p>
-            <p id="stat-balance" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+          <div class="glass-card p-5 rounded-2xl col-span-2 lg:col-span-1">
+            <p class="text-xs font-semibold text-slate-400">Terminal Balance</p>
+            <p id="stat-balance" class="text-lg sm:text-xl font-black text-slate-900 mt-1">KES 0.00</p>
           </div>
         </div>
 
         <!-- 3. Charts & Habit Breakdown -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           <!-- Category Distribution (Donut Chart) -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 class="text-base font-bold text-slate-900 mb-4">Spending by Financial Category</h3>
+          <div class="glass-card p-6 sm:p-7 rounded-3xl">
+            <h3 class="text-base font-extrabold text-slate-900 mb-4">Spending by Financial Category</h3>
             <div class="h-64 relative">
               <canvas id="categoryChart"></canvas>
             </div>
           </div>
 
           <!-- Key Financial Ratios (Horizontal Bars) -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-            <h3 class="text-base font-bold text-slate-900 mb-4">Behavioral Credit Risk Ratios</h3>
+          <div class="glass-card p-6 sm:p-7 rounded-3xl flex flex-col justify-between">
+            <h3 class="text-base font-extrabold text-slate-900 mb-4">Behavioral Credit Risk Ratios</h3>
             <div class="space-y-4 my-auto">
               
               <div>
-                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
                   <span>Essential Commitments (Utilities, Groceries, Rent, Education, Health)</span>
-                  <span id="ratio-essential">0%</span>
+                  <span id="ratio-essential" class="font-bold">0%</span>
                 </div>
-                <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="w-full bg-slate-200/60 rounded-full h-2 overflow-hidden">
                   <div id="bar-essential" class="bg-emerald-500 h-2 rounded-full" style="width: 0%"></div>
                 </div>
               </div>
 
               <div>
-                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
-                  <span>Savings & Investments (MMFs, Saccos, Wealth)</span>
-                  <span id="ratio-savings">0%</span>
+                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                  <span>Savings & Wealth Accumulation (MMFs, Saccos, Investments)</span>
+                  <span id="ratio-savings" class="font-bold">0%</span>
                 </div>
-                <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="w-full bg-slate-200/60 rounded-full h-2 overflow-hidden">
                   <div id="bar-savings" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
                 </div>
               </div>
 
               <div>
-                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
                   <span>Luxury & Nightlife (Wines, Bars, Lounges)</span>
-                  <span id="ratio-luxury">0%</span>
+                  <span id="ratio-luxury" class="font-bold">0%</span>
                 </div>
-                <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="w-full bg-slate-200/60 rounded-full h-2 overflow-hidden">
                   <div id="bar-luxury" class="bg-amber-500 h-2 rounded-full" style="width: 0%"></div>
                 </div>
               </div>
 
               <div>
-                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
                   <span>Debt Servicing Burden (Loan Repayments)</span>
-                  <span id="ratio-debt">0%</span>
+                  <span id="ratio-debt" class="font-bold">0%</span>
                 </div>
-                <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="w-full bg-slate-200/60 rounded-full h-2 overflow-hidden">
                   <div id="bar-debt" class="bg-purple-500 h-2 rounded-full" style="width: 0%"></div>
                 </div>
               </div>
 
               <div>
-                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
-                  <span>Gambling / Sports Betting Expenditure</span>
-                  <span id="ratio-gambling">0%</span>
+                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+                  <span>Gambling & Sports Betting Expenditure</span>
+                  <span id="ratio-gambling" class="font-bold">0%</span>
                 </div>
-                <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="w-full bg-slate-200/60 rounded-full h-2 overflow-hidden">
                   <div id="bar-gambling" class="bg-rose-500 h-2 rounded-full" style="width: 0%"></div>
                 </div>
               </div>
@@ -422,8 +513,8 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           <!-- Positive Factors -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 class="text-sm font-bold text-emerald-800 flex items-center mb-3">
+          <div class="glass-card p-6 sm:p-7 rounded-3xl">
+            <h3 class="text-sm font-extrabold text-emerald-800 flex items-center mb-3.5">
               <svg class="w-5 h-5 mr-1.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
@@ -433,8 +524,8 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           </div>
 
           <!-- Risk Factors & Flags -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 class="text-sm font-bold text-rose-800 flex items-center mb-3">
+          <div class="glass-card p-6 sm:p-7 rounded-3xl">
+            <h3 class="text-sm font-extrabold text-rose-800 flex items-center mb-3.5">
               <svg class="w-5 h-5 mr-1.5 text-rose-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
               </svg>
@@ -446,31 +537,31 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         </div>
 
         <!-- 5. Detailed Transactions Table -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="glass-card rounded-3xl overflow-hidden shadow-sm">
+          <div class="p-6 border-b border-slate-200/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h3 class="text-base font-bold text-slate-900">Extracted & Classified Transactions</h3>
+              <h3 class="text-base font-extrabold text-slate-900">Extracted & Classified Transactions</h3>
               <p class="text-xs text-slate-400">All account numbers, phones and PII are redacted using SHA-256 tokens.</p>
             </div>
             <div class="flex items-center space-x-3 w-full sm:w-auto no-print">
-              <input type="text" id="tx-search-input" oninput="filterTransactions()" placeholder="Search counterparty or reference..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none w-full sm:w-60">
-              <select id="tx-category-filter" onchange="filterTransactions()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <input type="text" id="tx-search-input" oninput="filterTransactions()" placeholder="Search counterparty or reference..." class="px-3.5 py-2 glass-input rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none w-full sm:w-60">
+              <select id="tx-category-filter" onchange="filterTransactions()" class="px-3.5 py-2 glass-input rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium">
                 <option value="ALL">All Categories</option>
               </select>
             </div>
           </div>
 
           <div class="overflow-x-auto max-h-96">
-            <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-              <thead class="bg-slate-50 text-slate-500 uppercase font-semibold sticky top-0">
+            <table class="min-w-full divide-y divide-slate-200/60 text-left text-xs">
+              <thead class="bg-slate-100/70 backdrop-blur-md text-slate-500 uppercase font-bold sticky top-0">
                 <tr>
-                  <th class="px-4 py-3">Reference / ID</th>
-                  <th class="px-4 py-3">Type</th>
-                  <th class="px-4 py-3">Narrative / Counterparty</th>
-                  <th class="px-4 py-3">Category</th>
-                  <th class="px-4 py-3">Amount (KES)</th>
-                  <th class="px-4 py-3">Balance (KES)</th>
-                  <th class="px-4 py-3">Engine</th>
+                  <th class="px-4 py-3.5">Reference / ID</th>
+                  <th class="px-4 py-3.5">Type</th>
+                  <th class="px-4 py-3.5">Narrative / Counterparty</th>
+                  <th class="px-4 py-3.5">Category</th>
+                  <th class="px-4 py-3.5">Amount (KES)</th>
+                  <th class="px-4 py-3.5">Balance (KES)</th>
+                  <th class="px-4 py-3.5">Engine</th>
                 </tr>
               </thead>
               <tbody id="tx-table-body" class="divide-y divide-slate-100 font-mono">
@@ -487,8 +578,12 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
   </main>
 
   <!-- Footer -->
-  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 no-print">
-    Kenyan Financial Scorer & Statement Analyzer • Lipa na M-Pesa Online (Till 5008412) • 100k ML Categorization
+  <footer class="glass-nav py-5 text-center text-xs text-slate-400 no-print">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span class="font-bold text-slate-600">AFRIQAN CREDIT SCORER</span>
+      <span>Lipa na M-Pesa Online (Till 5008412) • 100k ML Categorization Engine</span>
+      <span>&copy; 2026 Afriqan Financial Intelligence</span>
+    </div>
   </footer>
 
   <!-- Frontend Logic -->
@@ -509,8 +604,8 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       const mpesaPdfBtn = document.getElementById('tab-mpesa-pdf-btn');
       const mpesaSmsBtn = document.getElementById('tab-mpesa-sms-btn');
 
-      const activeClasses = "pb-3 px-1 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-700 transition flex items-center";
-      const inactiveClasses = "pb-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center";
+      const activeClasses = "flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold rounded-xl bg-white text-emerald-800 shadow-sm transition-all duration-200 flex items-center justify-center space-x-2";
+      const inactiveClasses = "flex-1 py-2.5 px-4 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 hover:text-slate-900 hover:bg-white/50 transition-all duration-200 flex items-center justify-center space-x-2";
 
       bankPanel.classList.add('hidden');
       mpesaPdfPanel.classList.add('hidden');
@@ -625,9 +720,9 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
 
       const blob = new Blob([sampleCsv], { type: 'text/csv' });
       const formData = new FormData();
-      formData.append("file", blob, "sample_equity_bank_statement.csv");
+      formData.append("file", blob, "afriqan_sample_bank_statement.csv");
 
-      showLoading(true, "Analyzing sample Kenyan Bank Statement...");
+      showLoading(true, "Afriqan AI analyzing sample Bank Statement...");
       try {
         const res = await fetch("/api/v1/upload-bank", {
           method: "POST",
@@ -658,7 +753,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       const pwd = document.getElementById("bank-password").value.trim();
       if (pwd) formData.append("password", pwd);
 
-      showLoading(true, "Decrypting bank statement & categorizing transactions...");
+      showLoading(true, "Afriqan AI decrypting statement & categorizing transactions...");
       try {
         const res = await fetch("/api/v1/upload-bank", {
           method: "POST",
@@ -669,7 +764,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           throw new Error(err.detail || "Failed to analyze bank statement.");
         }
         const data = await res.json();
-        activeStatementSource = "KENYAN BANK STATEMENT";
+        activeStatementSource = "BANK STATEMENT";
         renderResults(data);
       } catch (e) {
         alert("Error: " + e.message);
@@ -689,7 +784,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       const pwd = document.getElementById("mpesa-password").value.trim();
       if (pwd) formData.append("password", pwd);
 
-      showLoading(true, "Decrypting M-Pesa PDF & categorizing transactions...");
+      showLoading(true, "Afriqan AI decrypting M-Pesa PDF & categorizing records...");
       try {
         const res = await fetch("/api/v1/upload-pdf", {
           method: "POST",
@@ -721,7 +816,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         .map(s => s.trim())
         .filter(s => s.length > 0);
 
-      showLoading(true, "Parsing SMS messages & running ML categorization...");
+      showLoading(true, "Afriqan AI parsing SMS notifications & running ML models...");
       try {
         const res = await fetch("/api/v1/score-full", {
           method: "POST",
@@ -742,7 +837,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       }
     }
 
-    function showLoading(show, message = "Processing statement & running ML categorization...") {
+    function showLoading(show, message = "Afriqan AI Engine running 100k categorization & risk models...") {
       document.getElementById("loading-message").innerText = message;
       document.getElementById("loading-spinner").classList.toggle("hidden", !show);
       if (show) {
@@ -758,7 +853,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       document.getElementById("source-badge").innerText = activeStatementSource;
       document.getElementById("tx-count-badge").innerText = `${currentTransactions.length} transactions analyzed`;
 
-      // If not yet unlocked, enforce paywall and blur
+      // If not yet unlocked, enforce glassmorphism paywall and blur
       if (!isReportUnlocked) {
         document.getElementById("paywall-card").classList.remove("hidden");
         document.getElementById("report-content-wrapper").className = "space-y-8 filter blur-md select-none pointer-events-none transition duration-500";
@@ -776,13 +871,13 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       tierBadge.innerText = report.risk_tier;
 
       const tierColors = {
-        "EXCELLENT": "bg-emerald-100 text-emerald-800",
-        "GOOD": "bg-green-100 text-green-800",
-        "FAIR": "bg-amber-100 text-amber-800",
-        "POOR": "bg-orange-100 text-orange-800",
-        "VERY_POOR": "bg-rose-100 text-rose-800"
+        "EXCELLENT": "bg-emerald-500/15 text-emerald-800 border border-emerald-500/30",
+        "GOOD": "bg-green-500/15 text-green-800 border border-green-500/30",
+        "FAIR": "bg-amber-500/15 text-amber-800 border border-amber-500/30",
+        "POOR": "bg-orange-500/15 text-orange-800 border border-orange-500/30",
+        "VERY_POOR": "bg-rose-500/15 text-rose-800 border border-rose-500/30"
       };
-      tierBadge.className = `px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${tierColors[report.risk_tier] || "bg-slate-100 text-slate-800"}`;
+      tierBadge.className = `px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${tierColors[report.risk_tier] || "bg-slate-100 text-slate-800"}`;
 
       document.getElementById("limit-value").innerText = `KES ${report.recommended_limit_kes.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
       const confPct = Math.round(report.confidence * 100);
@@ -795,7 +890,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       
       const netEl = document.getElementById("stat-net");
       netEl.innerText = `KES ${report.cash_flow.net_cashflow.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
-      netEl.className = `text-lg font-bold mt-1 ${report.cash_flow.net_cashflow >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+      netEl.className = `text-lg sm:text-xl font-black mt-1 ${report.cash_flow.net_cashflow >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
 
       document.getElementById("stat-fuliza").innerText = `${report.cash_flow.fuliza_count} (KES ${report.cash_flow.fuliza_total_amount.toLocaleString('en-KE', {minimumFractionDigits: 2})})`;
       
@@ -817,13 +912,13 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       // 4. Positive & Risk Factors
       const posList = document.getElementById("positive-factors-list");
       posList.innerHTML = report.positive_factors.length
-        ? report.positive_factors.map(f => `<li class="flex items-start"><span class="text-emerald-500 mr-1.5 font-bold">✓</span>${f}</li>`).join("")
+        ? report.positive_factors.map(f => `<li class="flex items-start"><span class="text-emerald-500 mr-2 font-black">✓</span>${f}</li>`).join("")
         : '<li class="text-slate-400">None detected.</li>';
 
       const riskList = document.getElementById("risk-factors-list");
       riskList.innerHTML = report.risk_factors.length
-        ? report.risk_factors.map(f => `<li class="flex items-start"><span class="text-rose-500 mr-1.5 font-bold">⚠</span>${f}</li>`).join("")
-        : '<li class="text-emerald-600 font-semibold">Zero risk factors flagged!</li>';
+        ? report.risk_factors.map(f => `<li class="flex items-start"><span class="text-rose-500 mr-2 font-black">⚠</span>${f}</li>`).join("")
+        : '<li class="text-emerald-600 font-bold">Zero risk factors flagged!</li>';
 
       // 5. Chart.js Category Donut
       renderCategoryChart(report.spending_habits.category_totals);
@@ -848,8 +943,8 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       const data = Object.values(categoryTotals);
 
       const palette = [
-        '#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6',
-        '#6366f1', '#14b8a6', '#ef4444', '#84cc16', '#06b6d4'
+        '#10b981', '#06b6d4', '#3b82f6', '#f59e0b', '#ec4899',
+        '#8b5cf6', '#14b8a6', '#ef4444', '#84cc16', '#6366f1'
       ];
 
       categoryChartInstance = new Chart(ctx, {
@@ -860,14 +955,14 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
             data: data,
             backgroundColor: palette.slice(0, labels.length),
             borderWidth: 2,
-            borderColor: '#ffffff'
+            borderColor: 'rgba(255, 255, 255, 0.8)'
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } },
+            legend: { position: 'right', labels: { boxWidth: 12, font: { family: '"Plus Jakarta Sans"', size: 11, weight: '600' } } },
             tooltip: {
               callbacks: {
                 label: function(context) {
@@ -883,21 +978,21 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
     function renderTable(txs) {
       const tbody = document.getElementById("tx-table-body");
       if (!txs.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400">No transactions match your search.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-400 font-sans">No transactions match your search.</td></tr>';
         return;
       }
       tbody.innerHTML = txs.map(t => {
         const p = t.parsed;
         const isReceive = p.tx_type === "RECEIVE_MONEY";
         return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="px-4 py-3 font-semibold text-slate-900">${p.transaction_id}</td>
-            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isReceive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">${p.tx_type}</span></td>
-            <td class="px-4 py-3 text-slate-800 font-sans text-xs">${p.counterparty_masked || p.counterparty}</td>
-            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-800 font-sans">${t.category}</span></td>
-            <td class="px-4 py-3 font-semibold ${isReceive ? 'text-emerald-600' : 'text-slate-900'}">${isReceive ? '+' : '-'}KES ${p.amount.toLocaleString('en-KE', {minimumFractionDigits: 2})}</td>
-            <td class="px-4 py-3 text-slate-500">${p.balance !== null ? 'KES ' + p.balance.toLocaleString('en-KE', {minimumFractionDigits: 2}) : '-'}</td>
-            <td class="px-4 py-3 text-[10px] text-slate-400 font-sans">${t.decision_engine}</td>
+          <tr class="hover:bg-emerald-50/30 transition">
+            <td class="px-4 py-3.5 font-bold text-slate-900">${p.transaction_id}</td>
+            <td class="px-4 py-3.5"><span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${isReceive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">${p.tx_type}</span></td>
+            <td class="px-4 py-3.5 text-slate-800 font-sans text-xs font-medium">${p.counterparty_masked || p.counterparty}</td>
+            <td class="px-4 py-3.5"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-800 font-sans">${t.category}</span></td>
+            <td class="px-4 py-3.5 font-bold ${isReceive ? 'text-emerald-600' : 'text-slate-900'}">${isReceive ? '+' : '-'}KES ${p.amount.toLocaleString('en-KE', {minimumFractionDigits: 2})}</td>
+            <td class="px-4 py-3.5 text-slate-500">${p.balance !== null ? 'KES ' + p.balance.toLocaleString('en-KE', {minimumFractionDigits: 2}) : '-'}</td>
+            <td class="px-4 py-3.5 text-[10px] text-slate-400 font-sans font-semibold">${t.decision_engine}</td>
           </tr>
         `;
       }).join("");
@@ -939,7 +1034,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         const res = await fetch("/api/v1/mpesa/stk-push", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, reference: "CreditReport" })
+          body: JSON.stringify({ phone, reference: "AfriqanScore" })
         });
 
         const data = await res.json();
@@ -1028,7 +1123,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
 
       // Show success banner and download button
       document.getElementById("payment-success-banner").classList.remove("hidden");
-      document.getElementById("payment-receipt-text").innerText = `Receipt: ${receiptCode} • Lipa na M-Pesa verified. Full report unlocked.`;
+      document.getElementById("payment-receipt-text").innerText = `Receipt: ${receiptCode} • Lipa na M-Pesa verified. Full Afriqan credit report unlocked.`;
       document.getElementById("top-download-pdf-btn").classList.remove("hidden");
 
       // Scroll smoothly to top of results
@@ -1054,7 +1149,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
 
       const opt = {
         margin: [8, 8, 8, 8],
-        filename: 'Kenyan_Financial_Credit_Report.pdf',
+        filename: 'Afriqan_Credit_Score_Report.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }

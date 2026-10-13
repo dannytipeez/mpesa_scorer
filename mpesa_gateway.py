@@ -92,7 +92,7 @@ class MpesaGateway:
         self,
         phone: str,
         amount: Optional[int] = None,
-        reference: str = "FinancialReport"
+        reference: str = "AfriqanScore"
     ) -> Dict[str, Any]:
         """
         Initiates an M-Pesa STK Push to the customer's phone for 50 KES.
@@ -130,7 +130,7 @@ class MpesaGateway:
                 "PhoneNumber": formatted_phone,
                 "CallBackURL": self.callback_url,
                 "AccountReference": reference[:12],
-                "TransactionDesc": "Statement Analysis Report"
+                "TransactionDesc": "Afriqan Credit Report"
             }
 
             url = f"{self.base_url}/mpesa/stkpush/v1/processrequest"
@@ -270,3 +270,4 @@ class MpesaGateway:
         record["result_desc"] = "Demo Payment Approved"
         self.payments[checkout_request_id] = record
         return record
+

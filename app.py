@@ -215,8 +215,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="M-Pesa Extraction, Categorization & Credit Scoring Engine",
-    version="1.3.0",
+    title="AFRIQAN CREDIT SCORER - AI Financial Statement & Credit Risk Engine",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -475,7 +475,7 @@ async def upload_bank_statement(
 
 class StkPushRequest(BaseModel):
     phone: str
-    reference: Optional[str] = "CreditScore"
+    reference: Optional[str] = "AfriqanScore"
 
 
 @app.post("/api/v1/mpesa/stk-push")
@@ -523,7 +523,7 @@ def health_check():
     return {
         "status": "healthy",
         "model_loaded": ml_model is not None,
-        "service": "mpesa-parser-api",
+        "service": "afriqan-credit-scorer",
         "mpesa_shortcode": mpesa_gateway.shortcode,
         "mpesa_env": mpesa_gateway.env
     }
