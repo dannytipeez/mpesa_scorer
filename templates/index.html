@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>M-Pesa Analyzer & Credit Scorer</title>
+  <title>Kenyan Financial Scorer & Statement Analyzer (M-Pesa & Bank)</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js -->
@@ -21,18 +21,18 @@
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
-          M
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-bold text-xl shadow-md">
+          🇰🇪
         </div>
         <div>
-          <h1 class="text-xl font-bold text-slate-900 leading-tight">M-Pesa Scorer & Financial Analyzer</h1>
-          <p class="text-xs text-slate-500">Kenyan Mobile Money Parser • Categorization • Credit Risk Engine</p>
+          <h1 class="text-xl font-bold text-slate-900 leading-tight">Kenyan Financial Scorer & Statement Analyzer</h1>
+          <p class="text-xs text-slate-500">M-Pesa & Bank Statements (PDF/CSV) • 100k ML Categorization Pipeline • Credit Risk Scoring</p>
         </div>
       </div>
       <div class="flex items-center space-x-3">
         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
           <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
-          Engine Active
+          AI Model Active (100k records)
         </span>
       </div>
     </div>
@@ -41,49 +41,99 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
 
-    <!-- Upload & Input Section -->
+    <!-- Upload & Input Selection Tabs -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
       
-      <!-- Tabs Navigation -->
-      <div class="border-b border-slate-200 bg-slate-50/70 px-6 pt-4 flex space-x-6">
-        <button id="tab-pdf-btn" onclick="switchTab('pdf')" class="pb-3 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-700 transition">
-          📄 Upload M-Pesa PDF Statement
+      <!-- Primary Tabs Navigation: Bank vs M-Pesa PDF vs M-Pesa SMS -->
+      <div class="border-b border-slate-200 bg-slate-50/70 px-4 sm:px-6 pt-3 flex flex-wrap gap-2 sm:gap-6">
+        <button id="tab-bank-btn" onclick="switchStatementMode('bank')" class="pb-3 px-1 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-700 transition flex items-center">
+          <span class="mr-1.5 text-base">🏦</span> Bank Statement <span class="ml-1 text-[11px] font-normal text-slate-500">(PDF / CSV)</span>
         </button>
-        <button id="tab-sms-btn" onclick="switchTab('sms')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition">
-          💬 Paste SMS Messages
+        <button id="tab-mpesa-pdf-btn" onclick="switchStatementMode('mpesa-pdf')" class="pb-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center">
+          <span class="mr-1.5 text-base">📱</span> M-Pesa Statement <span class="ml-1 text-[11px] font-normal text-slate-500">(PDF)</span>
+        </button>
+        <button id="tab-mpesa-sms-btn" onclick="switchStatementMode('mpesa-sms')" class="pb-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center">
+          <span class="mr-1.5 text-base">💬</span> M-Pesa SMS Texts <span class="ml-1 text-[11px] font-normal text-slate-500">(Paste)</span>
         </button>
       </div>
 
-      <!-- Tab Content: PDF Upload -->
-      <div id="tab-pdf" class="p-6">
+      <!-- Tab 1: Bank Statement (PDF & CSV) -->
+      <div id="tab-bank-panel" class="p-6">
         <div class="max-w-2xl mx-auto">
-          <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-emerald-500 hover:bg-emerald-50/30 transition cursor-pointer">
+          <div class="mb-4 text-center">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mb-2">
+              Supported: Equity Bank, KCB, Co-op Bank, NCBA, Stanbic, Absa, DTB, StanChart, I&M, Family Bank
+            </span>
+          </div>
+
+          <div id="bank-drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-emerald-500 hover:bg-emerald-50/30 transition cursor-pointer">
             <svg class="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            <p class="text-sm font-medium text-slate-700 mb-1">Drag and drop your official M-Pesa PDF statement here</p>
-            <p class="text-xs text-slate-400 mb-4">Exported e-statements from Safaricom M-Pesa App or Customer Care</p>
-            <input type="file" id="pdf-file-input" accept=".pdf" class="hidden">
-            <button onclick="document.getElementById('pdf-file-input').click()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition">
-              Select PDF File
+            <p class="text-sm font-medium text-slate-700 mb-1">Drag and drop your Bank Statement (PDF or CSV)</p>
+            <p class="text-xs text-slate-400 mb-4">Official e-statements, internet banking exports, or CSV downloads</p>
+            <input type="file" id="bank-file-input" accept=".pdf,.csv" class="hidden">
+            <button onclick="document.getElementById('bank-file-input').click()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition">
+              Select Bank Statement (PDF or CSV)
             </button>
-            <p id="selected-file-name" class="mt-3 text-xs font-semibold text-emerald-600 hidden"></p>
+            <p id="bank-file-name" class="mt-3 text-xs font-semibold text-emerald-600 hidden"></p>
           </div>
 
           <div class="mt-4 flex flex-col sm:flex-row items-center gap-3">
             <div class="w-full sm:flex-1">
-              <label class="block text-xs font-medium text-slate-600 mb-1">PDF Password (National ID / Passport No.)</label>
-              <input type="password" id="pdf-password" placeholder="e.g. 12345678 (leave blank if not password protected)" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <label class="block text-xs font-medium text-slate-600 mb-1">Bank PDF Password (National ID or KRA PIN)</label>
+              <input type="password" id="bank-password" placeholder="e.g. 12345678 or A012345678Z (leave blank if CSV / unencrypted)" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
-            <button id="btn-analyze-pdf" onclick="analyzePdf()" class="w-full sm:w-auto mt-2 sm:mt-5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm shadow transition flex items-center justify-center">
-              <span>Analyze Statement</span>
+            <button id="btn-analyze-bank" onclick="analyzeBankStatement()" class="w-full sm:w-auto mt-2 sm:mt-5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm shadow transition flex items-center justify-center">
+              <span>Analyze Bank Statement</span>
+            </button>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>Want to test without a file?</span>
+            <button onclick="loadSampleBankData()" class="text-emerald-600 hover:underline font-semibold flex items-center">
+              ⚡ Load Sample Kenyan Bank Statement (Demo)
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Tab Content: SMS Paste -->
-      <div id="tab-sms" class="p-6 hidden">
+      <!-- Tab 2: M-Pesa PDF Statement -->
+      <div id="tab-mpesa-pdf-panel" class="p-6 hidden">
+        <div class="max-w-2xl mx-auto">
+          <div class="mb-4 text-center">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 mb-2">
+              Supported: Safaricom M-Pesa Official Monthly / Custom e-Statements
+            </span>
+          </div>
+
+          <div id="mpesa-drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-emerald-500 hover:bg-emerald-50/30 transition cursor-pointer">
+            <svg class="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <p class="text-sm font-medium text-slate-700 mb-1">Drag and drop your Safaricom M-Pesa PDF statement here</p>
+            <p class="text-xs text-slate-400 mb-4">Exported e-statements from Safaricom M-Pesa App or Customer Care</p>
+            <input type="file" id="mpesa-file-input" accept=".pdf" class="hidden">
+            <button onclick="document.getElementById('mpesa-file-input').click()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition">
+              Select M-Pesa PDF File
+            </button>
+            <p id="mpesa-file-name" class="mt-3 text-xs font-semibold text-emerald-600 hidden"></p>
+          </div>
+
+          <div class="mt-4 flex flex-col sm:flex-row items-center gap-3">
+            <div class="w-full sm:flex-1">
+              <label class="block text-xs font-medium text-slate-600 mb-1">M-Pesa PDF Password (National ID / Passport Number)</label>
+              <input type="password" id="mpesa-password" placeholder="e.g. 12345678 (leave blank if not password protected)" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <button id="btn-analyze-mpesa-pdf" onclick="analyzeMpesaPdf()" class="w-full sm:w-auto mt-2 sm:mt-5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm shadow transition flex items-center justify-center">
+              <span>Analyze M-Pesa PDF</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: M-Pesa SMS Messages (Paste) -->
+      <div id="tab-mpesa-sms-panel" class="p-6 hidden">
         <div class="max-w-3xl mx-auto">
           <label class="block text-xs font-medium text-slate-600 mb-1">Paste M-Pesa SMS Notifications (One message per block or multi-line)</label>
           <textarea id="sms-text-input" rows="6" placeholder="Paste your M-Pesa SMS texts here, e.g.:
@@ -91,8 +141,8 @@ SH2819DK3L Confirmed. Ksh1,500.00 paid to KPLC PREPAID. for account 482910394 on
 
 LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 15/05/26 at 9:45 PM. New M-PESA balance is Ksh8,500.00. Transaction cost, Ksh0.00." class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
           <div class="mt-3 flex justify-between items-center">
-            <button onclick="loadSampleSms()" class="text-xs text-emerald-600 hover:underline font-medium">
-              Load Sample Kenyan Transactions
+            <button onclick="loadSampleSms()" class="text-xs text-emerald-600 hover:underline font-semibold flex items-center">
+              ⚡ Load Sample Kenyan SMS Messages
             </button>
             <button id="btn-analyze-sms" onclick="analyzeSms()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm shadow transition">
               Analyze Messages
@@ -106,11 +156,22 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
     <!-- Spinner Loading Overlay -->
     <div id="loading-spinner" class="hidden text-center py-12">
       <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-emerald-600"></div>
-      <p class="mt-4 text-sm font-medium text-slate-600">Processing statement & running ML categorization...</p>
+      <p id="loading-message" class="mt-4 text-sm font-medium text-slate-600">Parsing statement & running 100k ML categorization pipeline...</p>
     </div>
 
     <!-- Results Section (Hidden until analyzed) -->
     <div id="results-section" class="hidden space-y-8">
+
+      <!-- Statement Origin Badge -->
+      <div class="flex items-center justify-between bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Statement Source:</span>
+          <span id="source-badge" class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
+            BANK STATEMENT
+          </span>
+        </div>
+        <span id="tx-count-badge" class="text-xs text-slate-500 font-medium">10 transactions analyzed</span>
+      </div>
 
       <!-- 1. Credit Score Hero Card -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
@@ -118,7 +179,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           
           <!-- Score Gauge / Circle -->
           <div class="text-center md:border-r md:border-slate-200 pr-0 md:pr-6">
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">M-Pesa Credit Score</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Financial Credit Score</p>
             <div class="relative inline-flex items-center justify-center">
               <span id="score-value" class="text-6xl font-black text-slate-900">--</span>
               <span class="text-slate-400 font-bold ml-1 text-xl">/ 850</span>
@@ -133,7 +194,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           <!-- Credit Limit & Key Metrics -->
           <div class="space-y-4 md:border-r md:border-slate-200 px-0 md:px-6">
             <div>
-              <p class="text-xs text-slate-500 font-medium">Recommended Micro-Loan Limit</p>
+              <p class="text-xs text-slate-500 font-medium">Recommended Micro-Loan / Credit Limit</p>
               <p id="limit-value" class="text-2xl font-bold text-emerald-600">KES 0.00</p>
             </div>
             <div>
@@ -174,7 +235,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           <p id="stat-net" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
         </div>
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <p class="text-xs font-medium text-slate-500">Fuliza Overdrafts</p>
+          <p class="text-xs font-medium text-slate-500">Overdrafts / Fuliza</p>
           <p id="stat-fuliza" class="text-lg font-bold text-rose-600 mt-1">0 (KES 0.00)</p>
         </div>
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm col-span-2 lg:col-span-1">
@@ -201,7 +262,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
             
             <div>
               <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
-                <span>Essential Commitments (Utilities, Groceries, Rent, Edu)</span>
+                <span>Essential Commitments (Utilities, Groceries, Rent, Education, Health)</span>
                 <span id="ratio-essential">0%</span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-2">
@@ -211,7 +272,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
 
             <div>
               <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
-                <span>Savings & Investments (MMFs, Saccos)</span>
+                <span>Savings & Investments (MMFs, Saccos, Wealth)</span>
                 <span id="ratio-savings">0%</span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-2">
@@ -286,10 +347,10 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h3 class="text-base font-bold text-slate-900">Extracted & Classified Transactions</h3>
-            <p class="text-xs text-slate-400">All phone numbers and PII are redacted using SHA-256 tokens.</p>
+            <p class="text-xs text-slate-400">All account numbers, phones and PII are redacted using SHA-256 tokens.</p>
           </div>
           <div class="flex items-center space-x-3 w-full sm:w-auto">
-            <input type="text" id="tx-search-input" oninput="filterTransactions()" placeholder="Search merchant or account..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none w-full sm:w-60">
+            <input type="text" id="tx-search-input" oninput="filterTransactions()" placeholder="Search counterparty or reference..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none w-full sm:w-60">
             <select id="tx-category-filter" onchange="filterTransactions()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
               <option value="ALL">All Categories</option>
             </select>
@@ -300,9 +361,9 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
             <thead class="bg-slate-50 text-slate-500 uppercase font-semibold sticky top-0">
               <tr>
-                <th class="px-4 py-3">Receipt</th>
+                <th class="px-4 py-3">Reference / ID</th>
                 <th class="px-4 py-3">Type</th>
-                <th class="px-4 py-3">Counterparty</th>
+                <th class="px-4 py-3">Narrative / Counterparty</th>
                 <th class="px-4 py-3">Category</th>
                 <th class="px-4 py-3">Amount (KES)</th>
                 <th class="px-4 py-3">Balance (KES)</th>
@@ -322,57 +383,108 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
 
   <!-- Footer -->
   <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
-    M-Pesa Scorer • Powered by FastAPI & LightGBM Machine Learning Pipeline
+    Kenyan Financial Scorer & Statement Analyzer • FastAPI, LightGBM (100k Records) & Bank/M-Pesa Regex Engine
   </footer>
 
   <!-- Frontend Logic -->
   <script>
     let currentTransactions = [];
     let categoryChartInstance = null;
+    let activeStatementSource = "BANK STATEMENT";
 
-    function switchTab(tab) {
-      if (tab === 'pdf') {
-        document.getElementById('tab-pdf').classList.remove('hidden');
-        document.getElementById('tab-sms').classList.add('hidden');
-        document.getElementById('tab-pdf-btn').className = "pb-3 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-700 transition";
-        document.getElementById('tab-sms-btn').className = "pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition";
+    function switchStatementMode(mode) {
+      const bankPanel = document.getElementById('tab-bank-panel');
+      const mpesaPdfPanel = document.getElementById('tab-mpesa-pdf-panel');
+      const mpesaSmsPanel = document.getElementById('tab-mpesa-sms-panel');
+
+      const bankBtn = document.getElementById('tab-bank-btn');
+      const mpesaPdfBtn = document.getElementById('tab-mpesa-pdf-btn');
+      const mpesaSmsBtn = document.getElementById('tab-mpesa-sms-btn');
+
+      const activeClasses = "pb-3 px-1 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-700 transition flex items-center";
+      const inactiveClasses = "pb-3 px-1 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex items-center";
+
+      bankPanel.classList.add('hidden');
+      mpesaPdfPanel.classList.add('hidden');
+      mpesaSmsPanel.classList.add('hidden');
+
+      bankBtn.className = inactiveClasses;
+      mpesaPdfBtn.className = inactiveClasses;
+      mpesaSmsBtn.className = inactiveClasses;
+
+      if (mode === 'bank') {
+        bankPanel.classList.remove('hidden');
+        bankBtn.className = activeClasses;
+      } else if (mode === 'mpesa-pdf') {
+        mpesaPdfPanel.classList.remove('hidden');
+        mpesaPdfBtn.className = activeClasses;
       } else {
-        document.getElementById('tab-pdf').classList.add('hidden');
-        document.getElementById('tab-sms').classList.remove('hidden');
-        document.getElementById('tab-sms-btn').className = "pb-3 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-700 transition";
-        document.getElementById('tab-pdf-btn').className = "pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition";
+        mpesaSmsPanel.classList.remove('hidden');
+        mpesaSmsBtn.className = activeClasses;
       }
     }
 
-    // Drag and drop PDF handlers
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('pdf-file-input');
-    const fileNameDisplay = document.getElementById('selected-file-name');
+    // 1. Bank Statement Drag-and-Drop
+    const bankDropZone = document.getElementById('bank-drop-zone');
+    const bankFileInput = document.getElementById('bank-file-input');
+    const bankFileNameDisplay = document.getElementById('bank-file-name');
 
-    dropZone.addEventListener('dragover', (e) => {
+    bankDropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
-      dropZone.classList.add('border-emerald-500', 'bg-emerald-50/50');
+      bankDropZone.classList.add('border-emerald-500', 'bg-emerald-50/50');
     });
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
+    bankDropZone.addEventListener('dragleave', () => {
+      bankDropZone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
     });
-    dropZone.addEventListener('drop', (e) => {
+    bankDropZone.addEventListener('drop', (e) => {
       e.preventDefault();
-      dropZone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
+      bankDropZone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
       if (e.dataTransfer.files.length) {
-        fileInput.files = e.dataTransfer.files;
-        showSelectedFile();
+        bankFileInput.files = e.dataTransfer.files;
+        showSelectedBankFile();
       }
     });
-    fileInput.addEventListener('change', showSelectedFile);
+    bankFileInput.addEventListener('change', showSelectedBankFile);
 
-    function showSelectedFile() {
-      if (fileInput.files.length > 0) {
-        fileNameDisplay.innerText = `Selected: ${fileInput.files[0].name} (${(fileInput.files[0].size / 1024).toFixed(1)} KB)`;
-        fileNameDisplay.classList.remove('hidden');
+    function showSelectedBankFile() {
+      if (bankFileInput.files.length > 0) {
+        const f = bankFileInput.files[0];
+        bankFileNameDisplay.innerText = `Selected: ${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+        bankFileNameDisplay.classList.remove('hidden');
       }
     }
 
+    // 2. M-Pesa PDF Drag-and-Drop
+    const mpesaDropZone = document.getElementById('mpesa-drop-zone');
+    const mpesaFileInput = document.getElementById('mpesa-file-input');
+    const mpesaFileNameDisplay = document.getElementById('mpesa-file-name');
+
+    mpesaDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      mpesaDropZone.classList.add('border-emerald-500', 'bg-emerald-50/50');
+    });
+    mpesaDropZone.addEventListener('dragleave', () => {
+      mpesaDropZone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
+    });
+    mpesaDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      mpesaDropZone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
+      if (e.dataTransfer.files.length) {
+        mpesaFileInput.files = e.dataTransfer.files;
+        showSelectedMpesaFile();
+      }
+    });
+    mpesaFileInput.addEventListener('change', showSelectedMpesaFile);
+
+    function showSelectedMpesaFile() {
+      if (mpesaFileInput.files.length > 0) {
+        const f = mpesaFileInput.files[0];
+        mpesaFileNameDisplay.innerText = `Selected: ${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+        mpesaFileNameDisplay.classList.remove('hidden');
+      }
+    }
+
+    // Sample SMS Loader
     function loadSampleSms() {
       document.getElementById('sms-text-input').value = [
         "SH2819DK3L Confirmed. Ksh1,500.00 paid to KPLC PREPAID. for account 482910394 on 12/03/26 at 4:15 PM. New M-PESA balance is Ksh4,210.00. Transaction cost, Ksh23.00.",
@@ -389,27 +501,36 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       ].join("\n\n");
     }
 
-    async function analyzePdf() {
-      if (!fileInput.files.length) {
-        alert("Please select an M-Pesa PDF file first.");
-        return;
-      }
-      const formData = new FormData();
-      formData.append("file", fileInput.files[0]);
-      const pwd = document.getElementById("pdf-password").value.trim();
-      if (pwd) formData.append("password", pwd);
+    // Sample Bank Statement Loader (creates CSV on the fly and posts to /api/v1/upload-bank)
+    async function loadSampleBankData() {
+      const sampleCsv = `Date,Narrative,Reference,Debit,Credit,Balance
+02/01/2026,SALARY CREDIT FROM ACME TECH LTD,REF82910,,135000.00,135000.00
+03/01/2026,KPLC PREPAID 482910394,BILL9201,3500.00,,131500.00
+05/01/2026,POS PURCHASE QUICKMART KILIMANI,TX88291,6200.00,,125300.00
+10/01/2026,EFT CIC MONEY MARKET FUND MMF,REF1928,30000.00,,95300.00
+14/01/2026,POS PURCHASE OAKS AND CORKS WINES,POS9912,4200.00,,91100.00
+18/01/2026,PESALINK TO JOHN KAMAU,PLK8821,3000.00,,88100.00
+22/01/2026,STANDING ORDER ST CHRISTOPHER SCHOOL FEES,SO9921,35000.00,,53100.00
+25/01/2026,POS PURCHASE THE ALCHEMIST BAR WESTLANDS,POS7719,3800.00,,49300.00
+28/01/2026,LOAN REPAYMENT NCBA DIGITAL LOAN,LN9928,10000.00,,39300.00
+30/01/2026,MONTHLY ACCOUNT MAINTENANCE FEE,FEE01,150.00,,39150.00`;
 
-      showLoading(true);
+      const blob = new Blob([sampleCsv], { type: 'text/csv' });
+      const formData = new FormData();
+      formData.append("file", blob, "sample_equity_bank_statement.csv");
+
+      showLoading(true, "Analyzing sample Kenyan Bank Statement...");
       try {
-        const res = await fetch("/api/v1/upload-pdf", {
+        const res = await fetch("/api/v1/upload-bank", {
           method: "POST",
           body: formData
         });
         if (!res.ok) {
           const err = await res.json();
-          throw new Error(err.detail || "Failed to analyze PDF statement.");
+          throw new Error(err.detail || "Failed to analyze bank statement.");
         }
         const data = await res.json();
+        activeStatementSource = "BANK STATEMENT (EQUITY / KCB DEMO)";
         renderResults(data);
       } catch (e) {
         alert("Error: " + e.message);
@@ -418,19 +539,81 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       }
     }
 
+    // 1. Analyze Bank Statement (PDF or CSV)
+    async function analyzeBankStatement() {
+      if (!bankFileInput.files.length) {
+        alert("Please select a Bank statement (PDF or CSV) first, or click 'Load Sample Bank Statement'.");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("file", bankFileInput.files[0]);
+      const pwd = document.getElementById("bank-password").value.trim();
+      if (pwd) formData.append("password", pwd);
+
+      showLoading(true, "Decrypting bank statement & categorizing transactions...");
+      try {
+        const res = await fetch("/api/v1/upload-bank", {
+          method: "POST",
+          body: formData
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Failed to analyze bank statement.");
+        }
+        const data = await res.json();
+        activeStatementSource = "KENYAN BANK STATEMENT";
+        renderResults(data);
+      } catch (e) {
+        alert("Error: " + e.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // 2. Analyze M-Pesa PDF
+    async function analyzeMpesaPdf() {
+      if (!mpesaFileInput.files.length) {
+        alert("Please select an M-Pesa PDF file first.");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("file", mpesaFileInput.files[0]);
+      const pwd = document.getElementById("mpesa-password").value.trim();
+      if (pwd) formData.append("password", pwd);
+
+      showLoading(true, "Decrypting M-Pesa PDF & categorizing transactions...");
+      try {
+        const res = await fetch("/api/v1/upload-pdf", {
+          method: "POST",
+          body: formData
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Failed to analyze M-Pesa PDF statement.");
+        }
+        const data = await res.json();
+        activeStatementSource = "SAFARICOM M-PESA PDF";
+        renderResults(data);
+      } catch (e) {
+        alert("Error: " + e.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // 3. Analyze M-Pesa SMS
     async function analyzeSms() {
       const rawText = document.getElementById("sms-text-input").value.trim();
       if (!rawText) {
         alert("Please enter or paste at least one M-Pesa SMS notification.");
         return;
       }
-      // Split by double newline or regex pattern matching receipt ID
       const messages = rawText
         .split(/\n\s*\n/)
         .map(s => s.trim())
         .filter(s => s.length > 0);
 
-      showLoading(true);
+      showLoading(true, "Parsing SMS messages & running ML categorization...");
       try {
         const res = await fetch("/api/v1/score-full", {
           method: "POST",
@@ -442,6 +625,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           throw new Error(err.detail || "Failed to process SMS messages.");
         }
         const data = await res.json();
+        activeStatementSource = "M-PESA SMS DUMP";
         renderResults(data);
       } catch (e) {
         alert("Error: " + e.message);
@@ -450,7 +634,8 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       }
     }
 
-    function showLoading(show) {
+    function showLoading(show, message = "Processing statement & running ML categorization...") {
+      document.getElementById("loading-message").innerText = message;
       document.getElementById("loading-spinner").classList.toggle("hidden", !show);
       if (show) {
         document.getElementById("results-section").classList.add("hidden");
@@ -462,6 +647,8 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       currentTransactions = data.transactions;
 
       document.getElementById("results-section").classList.remove("hidden");
+      document.getElementById("source-badge").innerText = activeStatementSource;
+      document.getElementById("tx-count-badge").innerText = `${currentTransactions.length} transactions analyzed`;
 
       // 1. Credit Score Card
       const scoreEl = document.getElementById("score-value");
@@ -470,7 +657,6 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       const tierBadge = document.getElementById("tier-badge");
       tierBadge.innerText = report.risk_tier;
 
-      // Color tier badge
       const tierColors = {
         "EXCELLENT": "bg-emerald-100 text-emerald-800",
         "GOOD": "bg-green-100 text-green-800",
@@ -615,4 +801,3 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
   </script>
 </body>
 </html>
-

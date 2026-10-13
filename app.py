@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from mpesa_parser import MpesaParser, ParsedTransaction
 from mpesa_pdf_parser import MpesaPdfParser
+from bank_statement_parser import BankStatementParser
 from credit_scorer import MpesaCreditScorer, CreditScoreReport
 
 # In-memory model handle
@@ -189,6 +190,13 @@ DETERMINISTIC_RULES = {
     "brookhouse": "Education",
     "university of nairobi": "Education",
     "kenyatta university": "Education",
+
+    # Bank Charges & Administrative Fees
+    "bank charges": "General",
+    "maintenance fee": "General",
+    "ledger fee": "General",
+    "excise duty": "General",
+    "withholding tax": "General",
 }
 
 
@@ -405,6 +413,62 @@ async def upload_pdf_statement(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"PDF parsing error: {str(e)}")
+
+
+@app.post("/api/v1/upload-bank", response_model=FullScoringResponse)
+async def upload_bank_statement(
+    file: UploadFile = File(...),
+    password: Optional[str] = Form(None)
+):
+    """
+    Uploads an official Kenyan Bank Statement (PDF or CSV) from Equity, KCB, Co-op,
+    NCBA, Stanbic, Absa, DTB, StanChart, I&M, etc. (with optional National ID or KRA PIN password).
+    """
+    try:
+        content = await file.read()
+        bank_parser = BankStatementParser()
+        filename_lower = (file.filename or "").lower()
+
+        if filename_lower.endswith(".csv"):
+            text_content = content.decode("utf-8", errors="ignore")
+            parsed_txs = bank_parser.parse_csv_stream(text_content)
+        else:
+            parsed_txs = bank_parser.parse_pdf_stream(io.BytesIO(content), password=password)
+
+        if not parsed_txs:
+            raise HTTPException(
+                status_code=422,
+                detail="No transactions could be extracted from this bank statement. Please verify the format."
+            )
+
+        enriched_list: List[EnrichedTransaction] = []
+        raw_dicts = []
+
+        for tx in parsed_txs:
+            cat, conf, engine = classify_entity(tx.counterparty, tx.account_reference)
+            en = EnrichedTransaction(
+                parsed=tx,
+                category=cat,
+                confidence=conf,
+                decision_engine=engine,
+            )
+            enriched_list.append(en)
+            raw_dicts.append({
+                "parsed": tx,
+                "category": cat,
+                "confidence": conf,
+                "decision_engine": engine,
+            })
+
+        report = credit_scorer.score_transactions(raw_dicts)
+        return FullScoringResponse(report=report, transactions=enriched_list)
+
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Bank statement parsing error: {str(e)}")
 
 
 @app.get("/health")

@@ -5,19 +5,26 @@ import os
 import sys
 import joblib
 from mpesa_pdf_parser import MpesaPdfParser
+from bank_statement_parser import BankStatementParser
 from credit_scorer import MpesaCreditScorer
 import app as app_mod
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="M-Pesa Statement PDF Terminal Analyzer & Credit Scorer"
+        description="M-Pesa & Bank Statement Terminal Analyzer & Credit Scorer"
     )
-    parser.add_argument("pdf_path", help="Path to your M-Pesa statement PDF file")
+    parser.add_argument("file_path", help="Path to your M-Pesa or Bank statement (PDF or CSV)")
     parser.add_argument(
         "-p", "--password",
-        help="Statement password (usually your National ID / Passport number). If omitted and required, you will be prompted securely.",
+        help="Statement password (National ID, Passport number, or KRA PIN). If omitted and required, you will be prompted securely.",
         default=None
+    )
+    parser.add_argument(
+        "-t", "--type",
+        choices=["auto", "mpesa", "bank"],
+        default="auto",
+        help="Statement type: mpesa, bank, or auto-detect (default: auto)"
     )
     parser.add_argument(
         "--show-txs", action="store_true",
@@ -31,8 +38,8 @@ def main():
 
     args = parser.parse_args()
 
-    if not os.path.exists(args.pdf_path):
-        print(f"Error: File not found: '{args.pdf_path}'")
+    if not os.path.exists(args.file_path):
+        print(f"Error: File not found: '{args.file_path}'")
         sys.exit(1)
 
     # 1. Load ML Model
@@ -42,31 +49,75 @@ def main():
     else:
         print("Note: 'mpesa_classifier.joblib' not found, running on deterministic rules.")
 
-    pdf_parser = MpesaPdfParser()
     password = args.password
+    transactions = []
+    detected_type = args.type
 
-    # 2. Parse PDF (with retry prompt if password missing/incorrect)
-    try:
-        transactions = pdf_parser.parse_pdf_file(args.pdf_path, password=password)
-    except ValueError as ve:
-        err_msg = str(ve).lower()
-        if "password" in err_msg:
-            print("This PDF is password-protected by Safaricom.")
-            password = getpass.getpass("Enter M-Pesa PDF Password (National ID / Passport No): ")
-            try:
-                transactions = pdf_parser.parse_pdf_file(args.pdf_path, password=password)
-            except Exception as e:
-                print(f"Error: {e}")
-                sys.exit(1)
+    # 2. Parse File (CSV vs PDF, M-Pesa vs Bank)
+    is_csv = args.file_path.lower().endswith(".csv")
+
+    def parse_with_password_prompt(parser_fn, desc_label):
+        nonlocal password
+        try:
+            return parser_fn(password)
+        except ValueError as ve:
+            err_msg = str(ve).lower()
+            if "password" in err_msg:
+                print(f"This {desc_label} statement is password-protected.")
+                password = getpass.getpass("Enter Statement Password (National ID / KRA PIN): ")
+                return parser_fn(password)
+            raise
+
+    if is_csv or args.type == "bank":
+        bank_parser = BankStatementParser()
+        if is_csv:
+            with open(args.file_path, "r", encoding="utf-8", errors="ignore") as f:
+                transactions = bank_parser.parse_csv_stream(f.read())
+            detected_type = "Bank (CSV)"
         else:
-            print(f"Error: {ve}")
-            sys.exit(1)
-    except Exception as e:
-        print(f"Error opening PDF: {e}")
-        sys.exit(1)
+            transactions = parse_with_password_prompt(
+                lambda pwd: bank_parser.parse_pdf_stream(open(args.file_path, "rb"), password=pwd),
+                "Bank PDF"
+            )
+            detected_type = "Bank (PDF)"
+    elif args.type == "mpesa":
+        mpesa_parser = MpesaPdfParser()
+        transactions = parse_with_password_prompt(
+            lambda pwd: mpesa_parser.parse_pdf_file(args.file_path, password=pwd),
+            "M-Pesa PDF"
+        )
+        detected_type = "M-Pesa (PDF)"
+    else:
+        # Auto-detect mode: Try M-Pesa first, fall back to Bank parser
+        mpesa_parser = MpesaPdfParser()
+        try:
+            transactions = parse_with_password_prompt(
+                lambda pwd: mpesa_parser.parse_pdf_file(args.file_path, password=pwd),
+                "M-Pesa / Bank PDF"
+            )
+            detected_type = "M-Pesa (PDF)"
+        except Exception:
+            # Fall back to Bank parser
+            bank_parser = BankStatementParser()
+            try:
+                transactions = bank_parser.parse_pdf_stream(open(args.file_path, "rb"), password=password)
+                detected_type = "Bank (PDF)"
+            except Exception as e:
+                print(f"Error parsing statement: {e}")
+                sys.exit(1)
+
+        if not transactions:
+            # Try bank parser
+            bank_parser = BankStatementParser()
+            try:
+                transactions = bank_parser.parse_pdf_stream(open(args.file_path, "rb"), password=password)
+                if transactions:
+                    detected_type = "Bank (PDF)"
+            except Exception:
+                pass
 
     if not transactions:
-        print("Warning: No transactions found in the provided PDF statement.")
+        print("Warning: No transactions found in the provided statement file.")
         sys.exit(0)
 
     # 3. Classify Transactions
@@ -86,9 +137,9 @@ def main():
 
     # 5. Print Terminal Output
     print("\n" + "=" * 65)
-    print("      M-PESA STATEMENT ANALYSIS & CREDIT RISK REPORT")
+    print("      STATEMENT ANALYSIS & CREDIT RISK REPORT")
     print("=" * 65)
-    print(f"Statement File : {os.path.basename(args.pdf_path)}")
+    print(f"Statement File : {os.path.basename(args.file_path)} ({detected_type})")
     print(f"Transactions   : {len(transactions)} extracted")
     print("-" * 65)
 
@@ -104,7 +155,8 @@ def main():
     print(f"  • Total Inflows       : KES {cf.total_inflow:12,.2f}")
     print(f"  • Total Outflows      : KES {cf.total_outflow:12,.2f}")
     print(f"  • Net Cash Flow       : KES {cf.net_cashflow:12,.2f} {'(Positive)' if cf.net_cashflow >= 0 else '(Deficit)'}")
-    print(f"  • Fuliza Overdrafts   : {cf.fuliza_count} instances (KES {cf.fuliza_total_amount:,.2f})")
+    if cf.fuliza_count > 0:
+        print(f"  • Overdrafts / Fuliza : {cf.fuliza_count} instances (KES {cf.fuliza_total_amount:,.2f})")
     bal_str = f"KES {cf.latest_balance:,.2f}" if cf.latest_balance is not None else "N/A"
     print(f"  • Terminal Balance    : {bal_str}")
     print("-" * 65)
@@ -147,7 +199,7 @@ def main():
     # Optional Table
     if args.show_txs:
         print("\nCLASSIFIED TRANSACTIONS TABLE:")
-        print(f"{'Receipt':12s} | {'Type':13s} | {'Counterparty':30s} | {'Category':20s} | {'Amount (KES)':12s}")
+        print(f"{'Receipt/ID':12s} | {'Type':13s} | {'Counterparty':30s} | {'Category':20s} | {'Amount (KES)':12s}")
         print("-" * 95)
         for t in enriched_txs:
             p = t["parsed"]
@@ -158,6 +210,7 @@ def main():
     # Optional Export JSON
     if args.output:
         out_data = {
+            "statement_type": detected_type,
             "report": report.model_dump(),
             "transactions": [
                 {
@@ -180,4 +233,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
