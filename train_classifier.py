@@ -353,7 +353,7 @@ def train_and_export():
     start_time = time.time()
     print("=" * 60)
     print("Generating large-scale synthetic Kenyan financial dataset...")
-    df = generate_large_synthetic_data(samples_per_category=1500, seed=42)
+    df = generate_large_synthetic_data(samples_per_category=1600, seed=42)
     print(f"Dataset generated: {len(df):,} total samples across {df['category'].nunique()} categories.")
     
     print("\nSamples per category distribution:")
@@ -393,12 +393,12 @@ def train_and_export():
 
     y_pred = pipeline.predict(X_test)
     print("\n" + "=" * 60)
-    print("=== TEST SET EVALUATION REPORT (3,900 unseen samples) ===")
+    print("=== TEST SET EVALUATION REPORT (4,160 unseen samples) ===")
     print("=" * 60)
     print(classification_report(y_test, y_pred, digits=4, zero_division=0))
 
     model_path = "mpesa_classifier.joblib"
-    joblib.dump(pipeline, model_path)
+    joblib.dump(pipeline, model_path, compress=3)
     total_duration = time.time() - start_time
     print(f"Saved optimized model artifact to '{model_path}' ({total_duration:.2f}s total run).")
 
