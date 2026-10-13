@@ -12,6 +12,8 @@ services:
         value: production
       - key: MPESA_SHORTCODE
         value: "5008412"
+      - key: MPESA_TILL_NUMBER
+        value: "4466556"
       - key: MPESA_PAYMENT_AMOUNT
         value: "50"
       - key: MPESA_TRANSACTION_TYPE

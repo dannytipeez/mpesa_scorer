@@ -525,6 +525,7 @@ def health_check():
         "model_loaded": ml_model is not None,
         "service": "afriqan-credit-scorer",
         "mpesa_shortcode": mpesa_gateway.shortcode,
+        "mpesa_till_number": mpesa_gateway.till_number,
         "mpesa_env": mpesa_gateway.env
     }
 

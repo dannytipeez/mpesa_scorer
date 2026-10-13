@@ -18,6 +18,7 @@ class MpesaGateway:
         self.consumer_secret = os.getenv("MPESA_CONSUMER_SECRET", "").strip()
         self.passkey = os.getenv("MPESA_PASSKEY", "").strip()
         self.shortcode = os.getenv("MPESA_SHORTCODE", "5008412").strip()
+        self.till_number = os.getenv("MPESA_TILL_NUMBER", "4466556").strip()
         self.amount = int(os.getenv("MPESA_PAYMENT_AMOUNT", "50"))
         self.callback_url = os.getenv(
             "MPESA_CALLBACK_URL", "https://mpesa-scorer.onrender.com/api/v1/mpesa/callback"
@@ -119,6 +120,7 @@ class MpesaGateway:
 
         last_error = None
         for tx_type in tx_types_to_try:
+            party_b = self.till_number if tx_type == "CustomerBuyGoodsOnline" else self.shortcode
             payload = {
                 "BusinessShortCode": self.shortcode,
                 "Password": password,
@@ -126,11 +128,11 @@ class MpesaGateway:
                 "TransactionType": tx_type,
                 "Amount": charge_amount,
                 "PartyA": formatted_phone,
-                "PartyB": self.shortcode,
+                "PartyB": party_b,
                 "PhoneNumber": formatted_phone,
                 "CallBackURL": self.callback_url,
                 "AccountReference": reference[:12],
-                "TransactionDesc": "Afriqan Credit Report"
+                "TransactionDesc": "AfriqanCredit"[:13]
             }
 
             url = f"{self.base_url}/mpesa/stkpush/v1/processrequest"
