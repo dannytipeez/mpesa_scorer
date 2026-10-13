@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Optional, Tuple
 from pypdf import PdfReader
 from mpesa_parser import ParsedTransaction, TransactionType
+from gemini_analyzer import GeminiFinancialAnalyzer
 
 
 class BankStatementParser:
@@ -313,6 +314,85 @@ class BankStatementParser:
             else:
                 if in_table and not amounts:
                     accumulated_narrative.append(line)
+
+        # Fallback 1: Text-based OCR via Gemini for non-standard or complex table layouts
+        if not transactions:
+            all_raw_text = "\n".join(full_text_lines)
+            analyzer = GeminiFinancialAnalyzer()
+            if len(all_raw_text.strip()) > 30:
+                ocr_rows = analyzer.ocr_extract_table_from_text(all_raw_text)
+                for idx, row in enumerate(ocr_rows):
+                    try:
+                        d_str = str(row.get("date", ""))
+                        amt = abs(float(row.get("amount", 0.0)))
+                        narr = str(row.get("narrative", "Bank Transaction")).strip()
+                        is_cr = bool(row.get("is_credit", False))
+                        bal = float(row.get("balance")) if row.get("balance") is not None else None
+
+                        tx_type, cp, ref = self._interpret_narrative(narr)
+                        if is_cr:
+                            tx_type = TransactionType.RECEIVE_MONEY
+                        elif tx_type == TransactionType.RECEIVE_MONEY:
+                            tx_type = TransactionType.BUY_GOODS
+
+                        tx = ParsedTransaction(
+                            transaction_id=f"OCR{idx+1:04d}",
+                            tx_type=tx_type,
+                            amount=amt,
+                            counterparty=cp,
+                            counterparty_masked=self._mask_account_or_phone(cp),
+                            account_reference=ref,
+                            timestamp=self._parse_date(d_str),
+                            balance=bal,
+                            tx_cost=0.0,
+                            fuliza_amount=None,
+                            raw_text=narr,
+                        )
+                        transactions.append(tx)
+                    except Exception:
+                        continue
+
+            # Fallback 2: Multimodal image-based OCR for scanned / image bank statements
+            if not transactions:
+                images_bytes = []
+                for page in reader.pages:
+                    try:
+                        for img in getattr(page, "images", []):
+                            images_bytes.append(img.data)
+                    except Exception:
+                        pass
+                if images_bytes:
+                    ocr_img_rows = analyzer.ocr_extract_from_page_images(images_bytes)
+                    for idx, row in enumerate(ocr_img_rows):
+                        try:
+                            d_str = str(row.get("date", ""))
+                            amt = abs(float(row.get("amount", 0.0)))
+                            narr = str(row.get("narrative", "Bank Transaction")).strip()
+                            is_cr = bool(row.get("is_credit", False))
+                            bal = float(row.get("balance")) if row.get("balance") is not None else None
+
+                            tx_type, cp, ref = self._interpret_narrative(narr)
+                            if is_cr:
+                                tx_type = TransactionType.RECEIVE_MONEY
+                            elif tx_type == TransactionType.RECEIVE_MONEY:
+                                tx_type = TransactionType.BUY_GOODS
+
+                            tx = ParsedTransaction(
+                                transaction_id=f"IMG{idx+1:04d}",
+                                tx_type=tx_type,
+                                amount=amt,
+                                counterparty=cp,
+                                counterparty_masked=self._mask_account_or_phone(cp),
+                                account_reference=ref,
+                                timestamp=self._parse_date(d_str),
+                                balance=bal,
+                                tx_cost=0.0,
+                                fuliza_amount=None,
+                                raw_text=narr,
+                            )
+                            transactions.append(tx)
+                        except Exception:
+                            continue
 
         return transactions
 

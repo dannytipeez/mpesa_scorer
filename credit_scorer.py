@@ -40,11 +40,17 @@ class CreditScoreReport(BaseModel):
     risk_tier: CreditRiskTier
     recommended_limit_kes: float
     confidence: float
+    total_money_sent: float = Field(default=0.0, description="Total outgoing transactions (Money Sent)")
+    total_money_received: float = Field(default=0.0, description="Total incoming transactions (Money Received)")
+    sacco_multiplier_limit_kes: float = Field(default=0.0, description="Estimated SACCO 3x loan multiplier potential")
+    debt_to_income_ratio: float = Field(default=0.0, description="Debt Service to Income ratio (CBK benchmark)")
     spending_habits: SpendingHabits
     cash_flow: CashFlowMetrics
     positive_factors: List[str]
     risk_factors: List[str]
     rule_flags: List[str]
+    gemini_summary: Optional[str] = None
+    gemini_action_plan: Optional[List[str]] = None
 
 
 class MpesaCreditScorer:
@@ -76,6 +82,10 @@ class MpesaCreditScorer:
                 risk_tier=CreditRiskTier.VERY_POOR,
                 recommended_limit_kes=0.0,
                 confidence=0.0,
+                total_money_sent=0.0,
+                total_money_received=0.0,
+                sacco_multiplier_limit_kes=0.0,
+                debt_to_income_ratio=0.0,
                 spending_habits=SpendingHabits(
                     total_spend=0.0,
                     category_totals={},
@@ -282,6 +292,13 @@ class MpesaCreditScorer:
         base_capacity = max(total_inflow, total_outflow)
         recommended_limit = round(base_capacity * limit_multiplier, -2) if limit_multiplier > 0 else 0.0
 
+        # SACCO Loan Multiplier (SASRA standard: 3x demonstrated deposit savings)
+        sacco_savings = category_totals.get("Savings & Investments", 0.0)
+        sacco_multiplier_limit = round(sacco_savings * 3.0, -2) if sacco_savings > 0 else 0.0
+
+        # Debt to Income Ratio (CBK benchmark: Debt repayments / Inflows)
+        debt_to_income = round(debt_service_spend / (total_inflow if total_inflow > 0 else 1.0), 4)
+
         confidence = round(min(1.0, len(enriched_transactions) / 10.0), 2)
 
         return CreditScoreReport(
@@ -289,6 +306,10 @@ class MpesaCreditScorer:
             risk_tier=tier,
             recommended_limit_kes=recommended_limit,
             confidence=confidence,
+            total_money_sent=round(total_outflow, 2),
+            total_money_received=round(total_inflow, 2),
+            sacco_multiplier_limit_kes=sacco_multiplier_limit,
+            debt_to_income_ratio=debt_to_income,
             spending_habits=SpendingHabits(
                 total_spend=round(total_outflow, 2),
                 category_totals=category_totals,

@@ -26,3 +26,5 @@ services:
         sync: false
       - key: MPESA_CALLBACK_URL
         sync: false
+      - key: GEMINI_API_KEY
+        sync: false

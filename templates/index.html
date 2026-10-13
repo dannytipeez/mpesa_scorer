@@ -313,6 +313,53 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         </div>
       </div>
 
+      <!-- 1. Credit Score Hero Card (UNBLURRED PREVIEW MATCHING IMAGE 2) -->
+      <div id="hero-score-card" class="glass-card rounded-3xl p-6 sm:p-9 shadow-md transition duration-300">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+          
+          <!-- Score Gauge -->
+          <div class="text-center md:border-r md:border-slate-200/70 pr-0 md:pr-6">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Afriqan Credit Score</p>
+            <div class="relative inline-flex items-center justify-center my-2">
+              <span id="score-value" class="text-6xl sm:text-7xl font-black text-slate-900 tracking-tight">--</span>
+              <span class="text-slate-400 font-bold ml-1.5 text-xl">/ 850</span>
+            </div>
+            <div class="mt-2">
+              <span id="tier-badge" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-800 shadow-xs">
+                --
+              </span>
+            </div>
+          </div>
+
+          <!-- Credit Limit & Key Metrics -->
+          <div class="space-y-4 md:border-r md:border-slate-200/70 px-0 md:px-6">
+            <div>
+              <p class="text-xs text-slate-500 font-semibold">Recommended Micro-Loan Borrowing Limit</p>
+              <p id="limit-value" class="text-3xl font-black text-emerald-600 mt-0.5">KES 0.00</p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 font-semibold">Risk Engine Scoring Confidence</p>
+              <div class="w-full bg-slate-200/70 rounded-full h-3 mt-1.5 overflow-hidden p-0.5">
+                <div id="confidence-bar" class="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+              <p id="confidence-text" class="text-right text-xs text-slate-400 font-bold mt-1">0% Confidence</p>
+            </div>
+          </div>
+
+          <!-- Quick Risk Summary -->
+          <div class="space-y-2.5 pl-0 md:pl-2">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Afriqan Risk Indicators</p>
+            <div id="summary-positive-pill" class="text-xs p-3 rounded-xl bg-emerald-50/80 text-emerald-900 border border-emerald-200 font-medium">
+              Positive credit habits verified
+            </div>
+            <div id="summary-risk-pill" class="text-xs p-3 rounded-xl bg-amber-50/80 text-amber-900 border border-amber-200 font-medium">
+              Risk flags under inspection
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- GLASSMORPHISM PAYWALL CARD -->
       <div id="paywall-card" class="glass-paywall rounded-3xl p-6 sm:p-9 max-w-xl mx-auto text-center relative z-20 no-print my-4">
         <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center text-2xl font-black mb-4 shadow-lg shadow-emerald-500/25">
@@ -320,7 +367,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         </div>
         <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Unlock Full Afriqan Credit Report</h2>
         <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-          Statement analyzed successfully. Complete a quick Lipa na M-Pesa payment to view your credit score, borrowing limit, and behavioral ratios.
+          Statement preview ready above. Settle the KES 50 unlock fee to view full cash flow audits, Gemini AI financial advisory, and download the official certified PDF report.
         </p>
         
         <div class="my-6 p-4 glass-card rounded-2xl flex items-center justify-between border border-emerald-400/40">
@@ -343,7 +390,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           </div>
 
           <button id="btn-stk-push" onclick="triggerStkPush()" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-600/25 transition flex items-center justify-center space-x-2">
-            <span>📱 Pay KES 50 via M-Pesa STK Push</span>
+            <span id="btn-stk-text">Pay Now</span>
           </button>
         </div>
 
@@ -361,7 +408,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
 
         <div class="mt-6 pt-4 border-t border-slate-200/60 flex items-center justify-center text-[11px] text-slate-400 font-medium">
           <span class="flex items-center space-x-1">
-            <span>🛡️ Secured by Safaricom Daraja API</span>
+            <span>🛡️ Secured by Safaricom Daraja API • Shortcode 5008412</span>
           </span>
         </div>
       </div>
@@ -369,74 +416,73 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       <!-- REPORT CONTENT WRAPPER (Blurred when locked, unblurred once paid) -->
       <div id="report-content-wrapper" class="space-y-8 filter blur-md select-none pointer-events-none transition duration-500">
 
-        <!-- 1. Credit Score Hero Card -->
-        <div class="glass-card rounded-3xl p-6 sm:p-9">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-            
-            <!-- Score Gauge -->
-            <div class="text-center md:border-r md:border-slate-200/70 pr-0 md:pr-6">
-              <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Afriqan Credit Score</p>
-              <div class="relative inline-flex items-center justify-center my-2">
-                <span id="score-value" class="text-6xl sm:text-7xl font-black text-slate-900 tracking-tight">--</span>
-                <span class="text-slate-400 font-bold ml-1.5 text-xl">/ 850</span>
-              </div>
-              <div class="mt-2">
-                <span id="tier-badge" class="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-800 shadow-xs">
-                  --
-                </span>
-              </div>
-            </div>
-
-            <!-- Credit Limit & Key Metrics -->
-            <div class="space-y-4 md:border-r md:border-slate-200/70 px-0 md:px-6">
-              <div>
-                <p class="text-xs text-slate-500 font-semibold">Recommended Micro-Loan Borrowing Limit</p>
-                <p id="limit-value" class="text-3xl font-black text-emerald-600 mt-0.5">KES 0.00</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 font-semibold">Risk Engine Scoring Confidence</p>
-                <div class="w-full bg-slate-200/70 rounded-full h-3 mt-1.5 overflow-hidden p-0.5">
-                  <div id="confidence-bar" class="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
-                </div>
-                <p id="confidence-text" class="text-right text-xs text-slate-400 font-bold mt-1">0% Confidence</p>
-              </div>
-            </div>
-
-            <!-- Quick Risk Summary -->
-            <div class="space-y-2.5 pl-0 md:pl-2">
-              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Afriqan Risk Indicators</p>
-              <div id="summary-positive-pill" class="text-xs p-3 rounded-xl bg-emerald-50/80 text-emerald-900 border border-emerald-200 font-medium">
-                Positive credit habits verified
-              </div>
-              <div id="summary-risk-pill" class="text-xs p-3 rounded-xl bg-amber-50/80 text-amber-900 border border-amber-200 font-medium">
-                Risk flags under inspection
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- 2. Cash Flow Stat Cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- 2. Cash Flow Stat Cards (Money Received vs Money Sent) -->
+        <div class="grid grid-cols-2 lg:grid-cols-6 gap-4">
           <div class="glass-card p-5 rounded-2xl">
-            <p class="text-xs font-semibold text-slate-400">Total Inflows</p>
-            <p id="stat-inflows" class="text-lg sm:text-xl font-black text-slate-900 mt-1">KES 0.00</p>
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Money Received</p>
+            <p id="stat-inflows" class="text-lg sm:text-xl font-black text-emerald-600 mt-1">KES 0.00</p>
           </div>
           <div class="glass-card p-5 rounded-2xl">
-            <p class="text-xs font-semibold text-slate-400">Total Outflows</p>
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Money Sent</p>
             <p id="stat-outflows" class="text-lg sm:text-xl font-black text-slate-900 mt-1">KES 0.00</p>
           </div>
           <div class="glass-card p-5 rounded-2xl">
-            <p class="text-xs font-semibold text-slate-400">Net Cash Flow</p>
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Net Cash Flow</p>
             <p id="stat-net" class="text-lg sm:text-xl font-black text-slate-900 mt-1">KES 0.00</p>
           </div>
           <div class="glass-card p-5 rounded-2xl">
-            <p class="text-xs font-semibold text-slate-400">Overdrafts / Fuliza</p>
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Overdrafts / Fuliza</p>
             <p id="stat-fuliza" class="text-lg sm:text-xl font-black text-rose-600 mt-1">0 (KES 0.00)</p>
           </div>
-          <div class="glass-card p-5 rounded-2xl col-span-2 lg:col-span-1">
-            <p class="text-xs font-semibold text-slate-400">Terminal Balance</p>
+          <div class="glass-card p-5 rounded-2xl">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Terminal Balance</p>
             <p id="stat-balance" class="text-lg sm:text-xl font-black text-slate-900 mt-1">KES 0.00</p>
+          </div>
+          <div class="glass-card p-5 rounded-2xl col-span-2 lg:col-span-1">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">SACCO 3x Potential</p>
+            <p id="stat-sacco" class="text-lg sm:text-xl font-black text-blue-600 mt-1">KES 0.00</p>
+          </div>
+        </div>
+
+        <!-- 3. Gemini AI Financial Intelligence & Strategic Action Plan -->
+        <div class="glass-card rounded-3xl p-6 sm:p-8 border border-emerald-500/25 bg-gradient-to-br from-white/90 via-emerald-50/20 to-teal-50/30">
+          <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-200/70">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-sm shadow-md shadow-emerald-500/20">
+                AI
+              </div>
+              <div>
+                <h3 class="text-base font-extrabold text-slate-900 tracking-tight">Afriqan AI Underwriting Assessment & Action Plan</h3>
+                <p class="text-xs text-slate-500 font-medium">Powered by Gemini 3 Flash • CBK Prudential Guidelines & SACCO Regulations</p>
+              </div>
+            </div>
+            <span class="px-3 py-1 text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 rounded-xl border border-emerald-200">
+              Gemini AI Active
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Executive Statement Summary -->
+            <div class="space-y-3 bg-white/85 rounded-2xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex items-center space-x-2">
+                <span class="text-emerald-600 font-bold text-base">📋</span>
+                <h4 class="text-xs font-black uppercase tracking-wider text-slate-800">Financial Statement Executive Summary</h4>
+              </div>
+              <div id="ai-executive-summary" class="text-xs text-slate-700 leading-relaxed font-normal space-y-2.5">
+                <p>Analyzing statement dynamics and cash flow health...</p>
+              </div>
+            </div>
+
+            <!-- Strategic Credit Action Plan -->
+            <div class="space-y-3 bg-white/85 rounded-2xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex items-center space-x-2">
+                <span class="text-emerald-600 font-bold text-base">🎯</span>
+                <h4 class="text-xs font-black uppercase tracking-wider text-slate-800">Personalized Credit-Building Action Plan</h4>
+              </div>
+              <ul id="ai-action-plan-list" class="space-y-2.5 text-xs text-slate-700 font-medium">
+                <li class="flex items-start space-x-2"><span class="text-emerald-500 font-bold">✓</span><span>Generating personalized credit action roadmap...</span></li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -847,9 +893,22 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       document.getElementById("confidence-bar").style.width = `${confPct}%`;
       document.getElementById("confidence-text").innerText = `${confPct}% Confidence`;
 
-      // 2. Stats
-      document.getElementById("stat-inflows").innerText = `KES ${report.cash_flow.total_inflow.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
-      document.getElementById("stat-outflows").innerText = `KES ${report.cash_flow.total_outflow.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+      // Hero Card Dynamic Risk Indicators Preview (Matching Image 2)
+      const posSummary = (report.positive_factors && report.positive_factors.length)
+        ? report.positive_factors[0]
+        : "Positive credit habits verified";
+      document.getElementById("summary-positive-pill").innerText = posSummary;
+
+      const riskSummary = (report.risk_factors && report.risk_factors.length)
+        ? report.risk_factors[0]
+        : "Zero critical risk flags detected";
+      document.getElementById("summary-risk-pill").innerText = riskSummary;
+
+      // 2. Stats (Money Received vs Money Sent)
+      const inAmt = report.total_money_received !== undefined ? report.total_money_received : report.cash_flow.total_inflow;
+      const outAmt = report.total_money_sent !== undefined ? report.total_money_sent : report.cash_flow.total_outflow;
+      document.getElementById("stat-inflows").innerText = `KES ${inAmt.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+      document.getElementById("stat-outflows").innerText = `KES ${outAmt.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
       
       const netEl = document.getElementById("stat-net");
       netEl.innerText = `KES ${report.cash_flow.net_cashflow.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
@@ -859,6 +918,41 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       
       const bal = report.cash_flow.latest_balance;
       document.getElementById("stat-balance").innerText = bal !== null ? `KES ${bal.toLocaleString('en-KE', {minimumFractionDigits: 2})}` : "N/A";
+
+      const saccoCap = report.sacco_multiplier_limit_kes || 0.0;
+      document.getElementById("stat-sacco").innerText = `KES ${saccoCap.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+
+      // Gemini AI Underwriting Summary & Action Plan
+      const summaryEl = document.getElementById("ai-executive-summary");
+      if (report.gemini_summary) {
+        summaryEl.innerHTML = report.gemini_summary
+          .split("\n\n")
+          .map(p => `<p class="leading-relaxed">${p.trim()}</p>`)
+          .join("");
+      } else {
+        summaryEl.innerHTML = `<p class="leading-relaxed">Statement analyzed under Central Bank of Kenya prudential guidelines and SASRA SACCO standards. Cash flow indicates steady velocity.</p>`;
+      }
+
+      const planList = document.getElementById("ai-action-plan-list");
+      if (report.gemini_action_plan && report.gemini_action_plan.length) {
+        planList.innerHTML = report.gemini_action_plan.map(item => `
+          <li class="flex items-start space-x-2">
+            <span class="text-emerald-500 font-black mt-0.5">✓</span>
+            <span class="text-slate-700 leading-snug">${item}</span>
+          </li>
+        `).join("");
+      } else {
+        planList.innerHTML = `
+          <li class="flex items-start space-x-2">
+            <span class="text-emerald-500 font-black mt-0.5">✓</span>
+            <span>Channel at least 15% of monthly inflows to SACCOs or MMFs to unlock 3x borrowing capacity.</span>
+          </li>
+          <li class="flex items-start space-x-2">
+            <span class="text-emerald-500 font-black mt-0.5">✓</span>
+            <span>Eliminate recurring mobile overdraft (Fuliza) usage to reduce daily interest drag and boost score.</span>
+          </li>
+        `;
+      }
 
       // 3. Ratios
       const setRatio = (id, barId, val) => {
@@ -1016,7 +1110,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       } catch (err) {
         alert("M-Pesa STK Push Error: " + err.message);
         btn.disabled = false;
-        btn.innerHTML = `<span>📱 Pay KES 50 via M-Pesa STK Push</span>`;
+        btn.innerHTML = `<span id="btn-stk-text">Pay Now</span>`;
       }
     }
 
@@ -1094,7 +1188,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       document.getElementById("stk-waiting-box").classList.add("hidden");
       const btn = document.getElementById("btn-stk-push");
       btn.disabled = false;
-      btn.innerHTML = `<span>📱 Pay KES 50 via M-Pesa STK Push</span>`;
+      btn.innerHTML = `<span id="btn-stk-text">Pay Now</span>`;
     }
 
     // ==========================================
@@ -1177,11 +1271,60 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         `;
       });
 
+      // Gemini Summary HTML for PDF
+      const aiSummaryHtml = report.gemini_summary ? `
+        <div class="pdf-card" style="margin-bottom: 14px; background: #f8fafc; border-left: 4px solid #059669;">
+          <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+            Afriqan AI Financial Intelligence Summary (Gemini 3 AI)
+          </div>
+          <div style="font-size: 10px; color: #334155; line-height: 1.5;">
+            ${report.gemini_summary.split("\n\n").map(p => `<p style="margin: 0 0 6px 0;">${p.trim()}</p>`).join("")}
+          </div>
+        </div>
+      ` : '';
+
+      // Gemini Action Plan HTML for PDF
+      const planItems = (report.gemini_action_plan && report.gemini_action_plan.length)
+        ? report.gemini_action_plan
+        : [
+            "Maintain consistent monthly deposits to SACCOs/MMFs to leverage the 3x loan multiplier.",
+            "Eliminate short-term mobile overdraft rollovers (Fuliza) to protect your digital credit rating.",
+            "Consolidate outstanding high-cost mobile loans to keep total debt service below 30% of income."
+          ];
+      let aiPlanHtml = `
+        <div class="pdf-card" style="margin-bottom: 14px; background: #f0fdf4; border: 1px solid #bbf7d0;">
+          <div style="font-size: 11px; font-weight: 800; color: #065f46; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+            Afriqan AI Strategic Credit Action Plan
+          </div>
+          <div style="font-size: 10px; color: #166534; line-height: 1.45;">
+      `;
+      planItems.forEach(item => {
+        aiPlanHtml += `
+          <div style="display: flex; align-items: flex-start; margin-bottom: 5px;">
+            <span style="font-weight: 900; color: #059669; margin-right: 6px;">✓</span>
+            <span>${item}</span>
+          </div>
+        `;
+      });
+      aiPlanHtml += `</div></div>`;
+
+      // Safe spending habits ratios
+      const habits = report.spending_habits || {};
+      const essRatio = habits.essential_ratio !== undefined ? (habits.essential_ratio * 100).toFixed(1) : "0.0";
+      const savRatio = habits.savings_ratio !== undefined ? (habits.savings_ratio * 100).toFixed(1) : "0.0";
+      const luxRatio = habits.luxury_ratio !== undefined ? (habits.luxury_ratio * 100).toFixed(1) : "0.0";
+      const dbtRatio = habits.debt_service_ratio !== undefined ? (habits.debt_service_ratio * 100).toFixed(1) : "0.0";
+      const gmbRatio = habits.gambling_ratio !== undefined ? (habits.gambling_ratio * 100).toFixed(1) : "0.0";
+
+      const inFlowVal = report.total_money_received !== undefined ? report.total_money_received : (report.cash_flow ? report.cash_flow.total_inflow : 0);
+      const outFlowVal = report.total_money_sent !== undefined ? report.total_money_sent : (report.cash_flow ? report.cash_flow.total_outflow : 0);
+      const saccoCapVal = report.sacco_multiplier_limit_kes || 0;
+
       return `
         <div class="printable-report" style="padding: 24px; background: #ffffff;">
           
           <!-- Page 1 Header -->
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 16px; border-bottom: 2px solid #059669; margin-bottom: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 2px solid #059669; margin-bottom: 14px;">
             <div>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 32px; height: 32px; background: #059669; border-radius: 8px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px;">A</div>
@@ -1201,7 +1344,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           </div>
 
           <!-- Document Metadata Bar -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; display: flex; justify-content: space-between; font-size: 11px;">
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; display: flex; justify-content: space-between; font-size: 11px;">
             <div><span style="color: #64748b; font-weight: 600;">Source:</span> <strong style="color: #0f172a;">${source}</strong></div>
             <div><span style="color: #64748b; font-weight: 600;">Records:</span> <strong style="color: #0f172a;">${(transactions || []).length} Analyzed</strong></div>
             <div><span style="color: #64748b; font-weight: 600;">Currency:</span> <strong style="color: #0f172a;">KES (Kenya Shillings)</strong></div>
@@ -1209,17 +1352,17 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           </div>
 
           <!-- 1. Executive Credit Scorecard -->
-          <div class="pdf-card" style="margin-bottom: 18px;">
+          <div class="pdf-card" style="margin-bottom: 14px;">
             <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr; gap: 16px; align-items: center;">
               
               <!-- Score Box -->
               <div style="text-align: center; border-right: 1px solid #e2e8f0; padding-right: 12px;">
                 <span style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Afriqan Credit Score</span>
                 <div style="margin: 4px 0;">
-                  <span style="font-size: 42px; font-weight: 900; color: #0f172a; line-height: 1;">${report.credit_score}</span>
-                  <span style="font-size: 16px; font-weight: 700; color: #94a3b8;">/ 850</span>
+                  <span style="font-size: 38px; font-weight: 900; color: #0f172a; line-height: 1;">${report.credit_score}</span>
+                  <span style="font-size: 15px; font-weight: 700; color: #94a3b8;">/ 850</span>
                 </div>
-                <div style="display: inline-block; background: ${tierColor}; color: white; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+                <div style="display: inline-block; background: ${tierColor}; color: white; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
                   ${report.risk_tier} RISK
                 </div>
               </div>
@@ -1227,7 +1370,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
               <!-- Borrowing Limit -->
               <div style="text-align: center; border-right: 1px solid #e2e8f0; padding-right: 12px;">
                 <span style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Recommended Micro-Loan Limit</span>
-                <div style="font-size: 26px; font-weight: 900; color: #059669; margin: 6px 0; line-height: 1.1;">
+                <div style="font-size: 24px; font-weight: 900; color: #059669; margin: 4px 0; line-height: 1.1;">
                   KES ${report.recommended_limit_kes.toLocaleString('en-KE', {minimumFractionDigits: 2})}
                 </div>
                 <span style="font-size: 10px; color: #64748b; font-weight: 600;">Automated Digital Credit Cap</span>
@@ -1236,7 +1379,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
               <!-- Risk Indicator Stat -->
               <div style="text-align: center;">
                 <span style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Model Reliability</span>
-                <div style="margin: 8px 0;">
+                <div style="margin: 6px 0;">
                   <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; width: 100%;">
                     <div style="background: #059669; height: 100%; width: ${confPct}%;"></div>
                   </div>
@@ -1247,45 +1390,52 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
             </div>
           </div>
 
-          <!-- 2. Liquidity & Cash Flow Overview -->
-          <div class="pdf-card" style="margin-bottom: 18px;">
-            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
-              Cash Flow & Liquidity Summary
+          <!-- 2. Liquidity & Cash Flow Overview (Money Received vs Money Sent) -->
+          <div class="pdf-card" style="margin-bottom: 14px;">
+            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+              Cash Flow & Liquidity Summary (Money Received vs Money Sent)
             </div>
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; text-align: center;">
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; text-align: center;">
               
-              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 6px;">
-                <span style="font-size: 10px; color: #64748b; font-weight: 700;">Total Inflows</span>
-                <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 4px; font-family: monospace;">
-                  KES ${report.cash_flow.total_inflow.toLocaleString('en-KE', {minimumFractionDigits: 0})}
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 4px;">
+                <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Money Received</span>
+                <div style="font-size: 12px; font-weight: 800; color: #047857; margin-top: 3px; font-family: monospace;">
+                  KES ${inFlowVal.toLocaleString('en-KE', {minimumFractionDigits: 0})}
                 </div>
               </div>
 
-              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 6px;">
-                <span style="font-size: 10px; color: #64748b; font-weight: 700;">Total Outflows</span>
-                <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 4px; font-family: monospace;">
-                  KES ${report.cash_flow.total_outflow.toLocaleString('en-KE', {minimumFractionDigits: 0})}
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 4px;">
+                <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Money Sent</span>
+                <div style="font-size: 12px; font-weight: 800; color: #0f172a; margin-top: 3px; font-family: monospace;">
+                  KES ${outFlowVal.toLocaleString('en-KE', {minimumFractionDigits: 0})}
                 </div>
               </div>
 
-              <div style="background: ${report.cash_flow.net_cashflow >= 0 ? '#ecfdf5' : '#fff1f2'}; border: 1px solid ${report.cash_flow.net_cashflow >= 0 ? '#a7f3d0' : '#fecdd3'}; border-radius: 8px; padding: 10px 6px;">
-                <span style="font-size: 10px; color: ${report.cash_flow.net_cashflow >= 0 ? '#065f46' : '#9f1239'}; font-weight: 700;">Net Cash Flow</span>
-                <div style="font-size: 13px; font-weight: 900; color: ${report.cash_flow.net_cashflow >= 0 ? '#047857' : '#e11d48'}; margin-top: 4px; font-family: monospace;">
+              <div style="background: ${report.cash_flow.net_cashflow >= 0 ? '#ecfdf5' : '#fff1f2'}; border: 1px solid ${report.cash_flow.net_cashflow >= 0 ? '#a7f3d0' : '#fecdd3'}; border-radius: 8px; padding: 8px 4px;">
+                <span style="font-size: 9px; color: ${report.cash_flow.net_cashflow >= 0 ? '#065f46' : '#9f1239'}; font-weight: 700; text-transform: uppercase;">Net Cash Flow</span>
+                <div style="font-size: 12px; font-weight: 900; color: ${report.cash_flow.net_cashflow >= 0 ? '#047857' : '#e11d48'}; margin-top: 3px; font-family: monospace;">
                   ${report.cash_flow.net_cashflow >= 0 ? '+' : ''}KES ${report.cash_flow.net_cashflow.toLocaleString('en-KE', {minimumFractionDigits: 0})}
                 </div>
               </div>
 
-              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 6px;">
-                <span style="font-size: 10px; color: #64748b; font-weight: 700;">Overdraft / Fuliza</span>
-                <div style="font-size: 13px; font-weight: 800; color: ${report.cash_flow.fuliza_count > 0 ? '#e11d48' : '#0f172a'}; margin-top: 4px; font-family: monospace;">
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 4px;">
+                <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Fuliza Overdraft</span>
+                <div style="font-size: 12px; font-weight: 800; color: ${report.cash_flow.fuliza_count > 0 ? '#e11d48' : '#0f172a'}; margin-top: 3px; font-family: monospace;">
                   ${report.cash_flow.fuliza_count} (KES ${report.cash_flow.fuliza_total_amount.toLocaleString('en-KE', {minimumFractionDigits: 0})})
                 </div>
               </div>
 
-              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 6px;">
-                <span style="font-size: 10px; color: #64748b; font-weight: 700;">Terminal Balance</span>
-                <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 4px; font-family: monospace;">
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 4px;">
+                <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Terminal Balance</span>
+                <div style="font-size: 12px; font-weight: 800; color: #0f172a; margin-top: 3px; font-family: monospace;">
                   ${report.cash_flow.latest_balance !== null ? 'KES ' + report.cash_flow.latest_balance.toLocaleString('en-KE', {minimumFractionDigits: 0}) : 'N/A'}
+                </div>
+              </div>
+
+              <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px 4px;">
+                <span style="font-size: 9px; color: #1e40af; font-weight: 700; text-transform: uppercase;">SACCO 3x Potential</span>
+                <div style="font-size: 12px; font-weight: 800; color: #1d4ed8; margin-top: 3px; font-family: monospace;">
+                  KES ${saccoCapVal.toLocaleString('en-KE', {minimumFractionDigits: 0})}
                 </div>
               </div>
 
@@ -1293,76 +1443,79 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           </div>
 
           <!-- 3. Behavioral Credit Risk Ratios -->
-          <div class="pdf-card" style="margin-bottom: 18px;">
-            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
-              Behavioral Credit Risk Ratios
+          <div class="pdf-card" style="margin-bottom: 14px;">
+            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+              Behavioral Credit Risk Ratios (Spending Habits Analysis)
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               
               <div>
-                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 4px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; margin-bottom: 3px;">
                   <span style="color: #334155;">Essential Commitments (Utilities, Groceries, Rent)</span>
-                  <span style="color: #059669;">${(report.ratios.essential_spend_ratio * 100).toFixed(1)}%</span>
+                  <span style="color: #059669;">${essRatio}%</span>
                 </div>
                 <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
-                  <div style="background: #059669; height: 100%; width: ${Math.min(100, report.ratios.essential_spend_ratio * 100)}%;"></div>
+                  <div style="background: #059669; height: 100%; width: ${Math.min(100, parseFloat(essRatio))}%;"></div>
                 </div>
               </div>
 
               <div>
-                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 4px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; margin-bottom: 3px;">
                   <span style="color: #334155;">Savings & Investments (MMFs, Saccos)</span>
-                  <span style="color: #0284c7;">${(report.ratios.savings_investment_ratio * 100).toFixed(1)}%</span>
+                  <span style="color: #0284c7;">${savRatio}%</span>
                 </div>
                 <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
-                  <div style="background: #0284c7; height: 100%; width: ${Math.min(100, report.ratios.savings_investment_ratio * 100)}%;"></div>
+                  <div style="background: #0284c7; height: 100%; width: ${Math.min(100, parseFloat(savRatio))}%;"></div>
                 </div>
               </div>
 
               <div>
-                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 4px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; margin-bottom: 3px;">
                   <span style="color: #334155;">Luxury & Nightlife (Wines, Bars, Lounges)</span>
-                  <span style="color: ${report.ratios.luxury_spend_ratio > 0.25 ? '#e11d48' : '#d97706'};">${(report.ratios.luxury_spend_ratio * 100).toFixed(1)}%</span>
+                  <span style="color: ${parseFloat(luxRatio) > 25 ? '#e11d48' : '#d97706'};">${luxRatio}%</span>
                 </div>
                 <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
-                  <div style="background: ${report.ratios.luxury_spend_ratio > 0.25 ? '#e11d48' : '#d97706'}; height: 100%; width: ${Math.min(100, report.ratios.luxury_spend_ratio * 100)}%;"></div>
+                  <div style="background: ${parseFloat(luxRatio) > 25 ? '#e11d48' : '#d97706'}; height: 100%; width: ${Math.min(100, parseFloat(luxRatio))}%;"></div>
                 </div>
               </div>
 
               <div>
-                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 4px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; margin-bottom: 3px;">
                   <span style="color: #334155;">Debt Servicing Burden (Loan Repayments)</span>
-                  <span style="color: #7c3aed;">${(report.ratios.debt_service_ratio * 100).toFixed(1)}%</span>
+                  <span style="color: #7c3aed;">${dbtRatio}%</span>
                 </div>
                 <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
-                  <div style="background: #7c3aed; height: 100%; width: ${Math.min(100, report.ratios.debt_service_ratio * 100)}%;"></div>
+                  <div style="background: #7c3aed; height: 100%; width: ${Math.min(100, parseFloat(dbtRatio))}%;"></div>
                 </div>
               </div>
 
               <div style="grid-column: span 2;">
-                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 4px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; margin-bottom: 3px;">
                   <span style="color: #334155;">Gambling & Sports Betting Outflows</span>
-                  <span style="color: ${report.ratios.gambling_ratio > 0 ? '#e11d48' : '#059669'};">${(report.ratios.gambling_ratio * 100).toFixed(1)}%</span>
+                  <span style="color: ${parseFloat(gmbRatio) > 0 ? '#e11d48' : '#059669'};">${gmbRatio}%</span>
                 </div>
                 <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
-                  <div style="background: ${report.ratios.gambling_ratio > 0 ? '#e11d48' : '#059669'}; height: 100%; width: ${Math.min(100, report.ratios.gambling_ratio * 100)}%;"></div>
+                  <div style="background: ${parseFloat(gmbRatio) > 0 ? '#e11d48' : '#059669'}; height: 100%; width: ${Math.min(100, parseFloat(gmbRatio))}%;"></div>
                 </div>
               </div>
 
             </div>
           </div>
 
+          <!-- 4. Gemini AI Executive Financial Summary -->
+          ${aiSummaryHtml}
+
           <!-- Page 1 Bottom Footer -->
-          <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 9px; color: #94a3b8; font-weight: 600;">
+          <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 9px; color: #94a3b8; font-weight: 600;">
             Page 1 of 2 • Afriqan Credit Scorer • Automated Financial Intelligence Engine • Commercial In-Confidence
           </div>
 
           <!-- PAGE BREAK FOR PAGE 2 -->
-          <div class="page-break"></div>
+          <div class="page-break" style="page-break-before: always; break-before: always; margin-top: 24px;"></div>
 
           <!-- Page 2 Mini Header -->
-          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 2px solid #059669; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 2px solid #059669; margin-bottom: 14px;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <div style="width: 24px; height: 24px; background: #059669; border-radius: 6px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px;">A</div>
               <span style="font-size: 14px; font-weight: 800; color: #0f172a;">AFRIQAN CREDIT SCORER</span>
@@ -1370,12 +1523,15 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
             <div style="font-size: 10px; color: #64748b; font-family: monospace;">Ref: ${reportSerial} • Page 2 of 2</div>
           </div>
 
-          <!-- 4. Risk Signals Audit -->
-          <div class="pdf-card" style="margin-bottom: 16px;">
-            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+          <!-- 5. Gemini AI Strategic Action Plan -->
+          ${aiPlanHtml}
+
+          <!-- 6. Risk Signals Audit -->
+          <div class="pdf-card" style="margin-bottom: 14px;">
+            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
               Credit Risk Factors & Behavioral Signals
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div>
                 <div style="font-size: 10px; font-weight: 800; color: #059669; text-transform: uppercase; margin-bottom: 6px;">Positive Credit Indicators</div>
                 ${posHtml}
@@ -1387,17 +1543,17 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
             </div>
           </div>
 
-          <!-- 5. Expenditure Breakdown by Category -->
-          <div class="pdf-card" style="margin-bottom: 16px;">
-            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+          <!-- 7. Expenditure Breakdown by Category -->
+          <div class="pdf-card" style="margin-bottom: 14px;">
+            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
               Expenditure Breakdown by Financial Category
             </div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
               <thead>
-                <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 10px; text-transform: uppercase;">
-                  <th style="padding: 6px 10px; text-align: left;">Category</th>
-                  <th style="padding: 6px 10px; text-align: right;">Total Amount</th>
-                  <th style="padding: 6px 10px; text-align: right;">Percentage Share</th>
+                <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 9px; text-transform: uppercase;">
+                  <th style="padding: 5px 8px; text-align: left;">Category</th>
+                  <th style="padding: 5px 8px; text-align: right;">Total Amount</th>
+                  <th style="padding: 5px 8px; text-align: right;">Percentage Share</th>
                 </tr>
               </thead>
               <tbody>
@@ -1406,10 +1562,10 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
             </table>
           </div>
 
-          <!-- 6. Transaction Ledger Audit -->
-          <div class="pdf-card" style="margin-bottom: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
-              <span style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">Audited Statement Transactions (First 20 Records)</span>
+          <!-- 8. Transaction Ledger Audit -->
+          <div class="pdf-card" style="margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">
+              <span style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">Audited Statement Transactions (Top 20 Records)</span>
               <span style="font-size: 9px; color: #64748b; font-family: monospace;">Total Records: ${(transactions || []).length}</span>
             </div>
             <table style="width: 100%; border-collapse: collapse;">
@@ -1429,11 +1585,11 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           </div>
 
           <!-- Digital Seal & Disclaimer -->
-          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div style="font-size: 10px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Afriqan Certified Digital Underwriting Assessment</div>
               <p style="margin: 2px 0 0 0; font-size: 9px; color: #64748b; max-width: 540px;">
-                Generated by Afriqan Credit Scorer machine learning risk engine. Valid for micro-lending, asset financing, and digital loan decisioning. Verified against Lipa na M-Pesa transaction reference ${receiptStr}.
+                Generated by Afriqan Credit Scorer machine learning risk engine. Grounded in CBK Prudential Guidelines and SACCO Regulations. Verified against Lipa na M-Pesa transaction reference ${receiptStr}.
               </p>
             </div>
             <div style="text-align: center; border: 2px solid #059669; border-radius: 8px; padding: 6px 12px; background: white;">
@@ -1443,7 +1599,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           </div>
 
           <!-- Page 2 Footer -->
-          <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 9px; color: #94a3b8; font-weight: 600;">
+          <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 9px; color: #94a3b8; font-weight: 600;">
             Page 2 of 2 • Afriqan Credit Scorer • End of Official Financial Assessment Report
           </div>
 

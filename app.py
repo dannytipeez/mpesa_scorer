@@ -13,10 +13,12 @@ from mpesa_pdf_parser import MpesaPdfParser
 from bank_statement_parser import BankStatementParser
 from credit_scorer import MpesaCreditScorer, CreditScoreReport
 from mpesa_gateway import MpesaGateway
+from gemini_analyzer import GeminiFinancialAnalyzer
 
 # In-memory model handle
 ml_model = None
 mpesa_gateway = MpesaGateway()
+gemini_analyzer = GeminiFinancialAnalyzer()
 
 # Regex rule: Map anything containing "wines", "wine", "bar", or "lounge" as discrete words to Luxury
 LUXURY_PATTERN = re.compile(r"\b(wines?|bar|lounge)\b", re.IGNORECASE)
@@ -199,6 +201,27 @@ DETERMINISTIC_RULES = {
     "ledger fee": "General",
     "excise duty": "General",
     "withholding tax": "General",
+
+    # Government & Taxes
+    "ecitizen": "Government & Taxes",
+    "kra": "Government & Taxes",
+    "itax": "Government & Taxes",
+    "ntsa": "Government & Taxes",
+    "nhif": "Government & Taxes",
+    "sha ": "Government & Taxes",
+    "social health": "Government & Taxes",
+    "nssf": "Government & Taxes",
+    "helb": "Government & Taxes",
+    "land rates": "Government & Taxes",
+    "county revenue": "Government & Taxes",
+
+    # Business & Trade
+    "wholesale": "Business & Trade",
+    "distributor": "Business & Trade",
+    "hardware": "Business & Trade",
+    "supplies": "Business & Trade",
+    "cement": "Business & Trade",
+    "steel mills": "Business & Trade",
 }
 
 
@@ -364,6 +387,13 @@ def calculate_credit_score_full(payload: BatchSMSRequest):
             })
 
     report = credit_scorer.score_transactions(raw_dicts)
+    ai_insights = gemini_analyzer.analyze_statement(
+        report_data=report.model_dump(),
+        transactions=enriched_list,
+        statement_type="M-Pesa SMS"
+    )
+    report.gemini_summary = ai_insights.get("executive_summary")
+    report.gemini_action_plan = ai_insights.get("action_plan")
     return FullScoringResponse(report=report, transactions=enriched_list)
 
 
@@ -407,6 +437,13 @@ async def upload_pdf_statement(
             })
 
         report = credit_scorer.score_transactions(raw_dicts)
+        ai_insights = gemini_analyzer.analyze_statement(
+            report_data=report.model_dump(),
+            transactions=enriched_list,
+            statement_type="Safaricom M-Pesa PDF"
+        )
+        report.gemini_summary = ai_insights.get("executive_summary")
+        report.gemini_action_plan = ai_insights.get("action_plan")
         return FullScoringResponse(report=report, transactions=enriched_list)
 
     except ValueError as ve:
@@ -463,6 +500,13 @@ async def upload_bank_statement(
             })
 
         report = credit_scorer.score_transactions(raw_dicts)
+        ai_insights = gemini_analyzer.analyze_statement(
+            report_data=report.model_dump(),
+            transactions=enriched_list,
+            statement_type="Kenyan Bank Statement"
+        )
+        report.gemini_summary = ai_insights.get("executive_summary")
+        report.gemini_action_plan = ai_insights.get("action_plan")
         return FullScoringResponse(report=report, transactions=enriched_list)
 
     except ValueError as ve:

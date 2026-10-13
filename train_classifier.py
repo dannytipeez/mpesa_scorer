@@ -145,7 +145,7 @@ def get_vocabularies():
             "Karen Green Estate Rent", "Lavington Court Apartments", "South B Apartments Rent",
             "Roysambu Heights Housing", "Ruiru Housing Cooperative", "Crystal Rivers Apartments",
             "Greatwall Gardens Housing Rent", "Parkview Apartments Kileleshwa",
-            "Pinnacle Properties Rent", "Broll Property Rent", "Dunhill Consulting Rent"
+            "Pinnacle Properties Rent", "Broll Property Rent", "Dunhill Consulting Rent", "PALM",
         ],
         "Education": [
             "University of Nairobi School Fees", "Strathmore University Tuition",
@@ -156,6 +156,23 @@ def get_vocabularies():
             "Alliance High School Fees", "Mang'u High School Fees", "Moi Girls High School",
             "Lenana School Fees", "Kenya High School Fees", "Rusinga School Fees",
             "Nova Pioneer Schools", "Peponi School Fees", "Hillcrest International School"
+        ],
+        "Government & Taxes": [
+            "eCitizen Services Paybill 222222", "KRA iTax Tax Payment Paybill 572572",
+            "KRA Customs and Excise Duty", "NTSA Driving Licence Inspection 222222",
+            "National Hospital Insurance Fund NHIF 200222", "Social Health Authority SHA Healthcare",
+            "National Social Security Fund NSSF 333300", "Higher Education Loans Board HELB 200800",
+            "Nairobi City County Land Rates Paybill 224974", "Mombasa County Parking and Rates",
+            "Kiambu County Revenue Services", "Nakuru County Revenue Services",
+            "Machakos County Revenue Collection", "Judiciary e-Filing Filing Fees"
+        ],
+        "Business & Trade": [
+            "Crown Paints Kenya Wholesale", "Bamburi Cement Supplies", "Kaluworks Aluminum Supplies",
+            "Unga Farm Care Animal Feeds", "Kapa Oil Refineries Wholesale", "Bidco Africa Supplies",
+            "Chui Hardware Building Supplies", "Twiga Foods Wholesale Fresh Produce",
+            "Apex Steel Wholesale Distributors", "Devki Steel Mills Building Supplies",
+            "General Hardware Construction Materials", "Kenpoly Plastics Supplies",
+            "Nairobi Packaging Solutions", "Brookside Dairy Bulk Purchase"
         ]
     }
 
