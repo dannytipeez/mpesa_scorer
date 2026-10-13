@@ -137,7 +137,10 @@ class MpesaGateway:
 
             url = f"{self.base_url}/mpesa/stkpush/v1/processrequest"
             resp = requests.post(url, json=payload, headers=headers, timeout=15)
-            data = resp.json()
+            try:
+                data = resp.json()
+            except Exception:
+                data = {"errorMessage": resp.text}
 
             if resp.status_code == 200 and data.get("ResponseCode") == "0":
                 checkout_id = data.get("CheckoutRequestID")
@@ -164,6 +167,8 @@ class MpesaGateway:
                 }
             else:
                 last_error = data.get("errorMessage") or data.get("ResponseDescription") or str(data)
+                if "Unable to lock subscriber" in str(last_error):
+                    last_error = "An active M-Pesa prompt exists on this phone. Wait 1 minute before retrying."
 
         raise RuntimeError(f"STK Push failed from Safaricom: {last_error}")
 
@@ -213,18 +218,25 @@ class MpesaGateway:
 
     def query_status(self, checkout_request_id: str) -> Dict[str, Any]:
         """
-        Checks payment status locally, and if still PENDING, queries Safaricom STK Push Query API.
+        Checks payment status locally, and if still PENDING, queries Safaricom STK Push Query API
+        adhering to Daraja rate limits and guidelines.
         """
         record = self.payments.get(checkout_request_id)
         if not record:
             return {"status": "NOT_FOUND", "message": "Unknown transaction identifier."}
 
-        # If already completed or failed, return immediately
+        # If already completed or failed via webhook callback, return immediately
         if record["status"] in ("COMPLETED", "FAILED"):
             return record
 
-        # If pending for less than 3 seconds, let callback or polling arrive
-        # If still pending, query Safaricom
+        now = time.time()
+        # Cooldown check: wait at least 4 seconds between upstream queries to avoid Spike Arrest (500.003.02)
+        if now - record.get("last_queried_at", 0) < 4.0:
+            return record
+
+        record["last_queried_at"] = now
+
+        # Query Safaricom STK Push Query API
         try:
             token = self.get_access_token()
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -249,27 +261,14 @@ class MpesaGateway:
 
             if res_code == "0":
                 record["status"] = "COMPLETED"
-                record["result_desc"] = data.get("ResultDesc", "Transaction successful.")
+                record["result_desc"] = data.get("ResultDesc", "The service request is processed successfully.")
+                if not record.get("mpesa_receipt"):
+                    record["mpesa_receipt"] = data.get("MpesaReceiptNumber") or f"MPESA{timestamp}"
             elif res_code in ("1032", "1037", "1", "2001"):
                 record["status"] = "FAILED"
                 record["result_desc"] = data.get("ResultDesc", "Payment not completed.")
         except Exception:
             pass
 
-        return record
-
-    def simulate_mock_approval(self, checkout_request_id: str) -> Dict[str, Any]:
-        """
-        Helper for testing or demo purposes when needed.
-        """
-        record = self.payments.get(checkout_request_id, {
-            "checkout_request_id": checkout_request_id,
-            "amount": 50,
-            "phone": "254700000000"
-        })
-        record["status"] = "COMPLETED"
-        record["mpesa_receipt"] = f"DEMO{int(time.time())}"
-        record["result_desc"] = "Demo Payment Approved"
-        self.payments[checkout_request_id] = record
         return record
 

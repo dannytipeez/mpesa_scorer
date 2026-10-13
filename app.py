@@ -510,14 +510,6 @@ def check_payment_status(checkout_request_id: str):
     return status
 
 
-@app.post("/api/v1/mpesa/demo-approve/{checkout_request_id}")
-def demo_approve_payment(checkout_request_id: str):
-    """
-    Simulates successful payment confirmation for demonstration and testing.
-    """
-    return mpesa_gateway.simulate_mock_approval(checkout_request_id)
-
-
 @app.get("/health")
 def health_check():
     return {
