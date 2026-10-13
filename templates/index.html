@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M-Pesa Analyzer & Credit Scorer</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .brand-green { color: #008751; }
+    .bg-brand-green { background-color: #008751; }
+    .bg-brand-green:hover { background-color: #006b40; }
+    .border-brand-green { border-color: #008751; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
+          M
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 leading-tight">M-Pesa Scorer & Financial Analyzer</h1>
+          <p class="text-xs text-slate-500">Kenyan Mobile Money Parser • Categorization • Credit Risk Engine</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+          Engine Active
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+    <!-- Upload & Input Section -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+      
+      <!-- Tabs Navigation -->
+      <div class="border-b border-slate-200 bg-slate-50/70 px-6 pt-4 flex space-x-6">
+        <button id="tab-pdf-btn" onclick="switchTab('pdf')" class="pb-3 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-700 transition">
+          📄 Upload M-Pesa PDF Statement
+        </button>
+        <button id="tab-sms-btn" onclick="switchTab('sms')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition">
+          💬 Paste SMS Messages
+        </button>
+      </div>
+
+      <!-- Tab Content: PDF Upload -->
+      <div id="tab-pdf" class="p-6">
+        <div class="max-w-2xl mx-auto">
+          <div id="drop-zone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-emerald-500 hover:bg-emerald-50/30 transition cursor-pointer">
+            <svg class="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <p class="text-sm font-medium text-slate-700 mb-1">Drag and drop your official M-Pesa PDF statement here</p>
+            <p class="text-xs text-slate-400 mb-4">Exported e-statements from Safaricom M-Pesa App or Customer Care</p>
+            <input type="file" id="pdf-file-input" accept=".pdf" class="hidden">
+            <button onclick="document.getElementById('pdf-file-input').click()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition">
+              Select PDF File
+            </button>
+            <p id="selected-file-name" class="mt-3 text-xs font-semibold text-emerald-600 hidden"></p>
+          </div>
+
+          <div class="mt-4 flex flex-col sm:flex-row items-center gap-3">
+            <div class="w-full sm:flex-1">
+              <label class="block text-xs font-medium text-slate-600 mb-1">PDF Password (National ID / Passport No.)</label>
+              <input type="password" id="pdf-password" placeholder="e.g. 12345678 (leave blank if not password protected)" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <button id="btn-analyze-pdf" onclick="analyzePdf()" class="w-full sm:w-auto mt-2 sm:mt-5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm shadow transition flex items-center justify-center">
+              <span>Analyze Statement</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content: SMS Paste -->
+      <div id="tab-sms" class="p-6 hidden">
+        <div class="max-w-3xl mx-auto">
+          <label class="block text-xs font-medium text-slate-600 mb-1">Paste M-Pesa SMS Notifications (One message per block or multi-line)</label>
+          <textarea id="sms-text-input" rows="6" placeholder="Paste your M-Pesa SMS texts here, e.g.:
+SH2819DK3L Confirmed. Ksh1,500.00 paid to KPLC PREPAID. for account 482910394 on 12/03/26 at 4:15 PM. New M-PESA balance is Ksh4,210.00. Transaction cost, Ksh23.00.
+
+LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 15/05/26 at 9:45 PM. New M-PESA balance is Ksh8,500.00. Transaction cost, Ksh0.00." class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          <div class="mt-3 flex justify-between items-center">
+            <button onclick="loadSampleSms()" class="text-xs text-emerald-600 hover:underline font-medium">
+              Load Sample Kenyan Transactions
+            </button>
+            <button id="btn-analyze-sms" onclick="analyzeSms()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm shadow transition">
+              Analyze Messages
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Spinner Loading Overlay -->
+    <div id="loading-spinner" class="hidden text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-emerald-600"></div>
+      <p class="mt-4 text-sm font-medium text-slate-600">Processing statement & running ML categorization...</p>
+    </div>
+
+    <!-- Results Section (Hidden until analyzed) -->
+    <div id="results-section" class="hidden space-y-8">
+
+      <!-- 1. Credit Score Hero Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          
+          <!-- Score Gauge / Circle -->
+          <div class="text-center md:border-r md:border-slate-200 pr-0 md:pr-6">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">M-Pesa Credit Score</p>
+            <div class="relative inline-flex items-center justify-center">
+              <span id="score-value" class="text-6xl font-black text-slate-900">--</span>
+              <span class="text-slate-400 font-bold ml-1 text-xl">/ 850</span>
+            </div>
+            <div class="mt-3">
+              <span id="tier-badge" class="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-800">
+                --
+              </span>
+            </div>
+          </div>
+
+          <!-- Credit Limit & Key Metrics -->
+          <div class="space-y-4 md:border-r md:border-slate-200 px-0 md:px-6">
+            <div>
+              <p class="text-xs text-slate-500 font-medium">Recommended Micro-Loan Limit</p>
+              <p id="limit-value" class="text-2xl font-bold text-emerald-600">KES 0.00</p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 font-medium">Scoring Confidence</p>
+              <div class="w-full bg-slate-100 rounded-full h-2.5 mt-1 overflow-hidden">
+                <div id="confidence-bar" class="bg-emerald-500 h-2.5 rounded-full" style="width: 0%"></div>
+              </div>
+              <p id="confidence-text" class="text-right text-xs text-slate-400 mt-0.5">0%</p>
+            </div>
+          </div>
+
+          <!-- Quick Risk Summary -->
+          <div class="space-y-2.5 pl-0 md:pl-2">
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Scoring Highlights</p>
+            <div id="summary-positive-pill" class="text-xs p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-100">
+              Positive credit habits verified
+            </div>
+            <div id="summary-risk-pill" class="text-xs p-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-100">
+              Risk flags under inspection
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 2. Cash Flow Stat Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-medium text-slate-500">Total Inflows</p>
+          <p id="stat-inflows" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-medium text-slate-500">Total Outflows</p>
+          <p id="stat-outflows" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-medium text-slate-500">Net Cash Flow</p>
+          <p id="stat-net" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-medium text-slate-500">Fuliza Overdrafts</p>
+          <p id="stat-fuliza" class="text-lg font-bold text-rose-600 mt-1">0 (KES 0.00)</p>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm col-span-2 lg:col-span-1">
+          <p class="text-xs font-medium text-slate-500">Terminal Balance</p>
+          <p id="stat-balance" class="text-lg font-bold text-slate-900 mt-1">KES 0.00</p>
+        </div>
+      </div>
+
+      <!-- 3. Charts & Habit Breakdown -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Category Distribution (Donut Chart) -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 mb-4">Spending by Financial Category</h3>
+          <div class="h-64 relative">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Key Financial Ratios (Horizontal Bars) -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <h3 class="text-base font-bold text-slate-900 mb-4">Behavioral Credit Risk Ratios</h3>
+          <div class="space-y-4 my-auto">
+            
+            <div>
+              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                <span>Essential Commitments (Utilities, Groceries, Rent, Edu)</span>
+                <span id="ratio-essential">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div id="bar-essential" class="bg-emerald-500 h-2 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                <span>Savings & Investments (MMFs, Saccos)</span>
+                <span id="ratio-savings">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div id="bar-savings" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                <span>Luxury & Nightlife (Wines, Bars, Lounges)</span>
+                <span id="ratio-luxury">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div id="bar-luxury" class="bg-amber-500 h-2 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                <span>Debt Servicing Burden (Loan Repayments)</span>
+                <span id="ratio-debt">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div id="bar-debt" class="bg-purple-500 h-2 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                <span>Gambling / Sports Betting Expenditure</span>
+                <span id="ratio-gambling">0%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div id="bar-gambling" class="bg-rose-500 h-2 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 4. Score Factors (Positive vs Negative) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Positive Factors -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold text-emerald-800 flex items-center mb-3">
+            <svg class="w-5 h-5 mr-1.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            Positive Scoring Factors
+          </h3>
+          <ul id="positive-factors-list" class="space-y-2 text-xs text-slate-600"></ul>
+        </div>
+
+        <!-- Risk Factors & Flags -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-sm font-bold text-rose-800 flex items-center mb-3">
+            <svg class="w-5 h-5 mr-1.5 text-rose-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            Risk Factors & Overdraft Flags
+          </h3>
+          <ul id="risk-factors-list" class="space-y-2 text-xs text-slate-600"></ul>
+        </div>
+
+      </div>
+
+      <!-- 5. Detailed Transactions Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Extracted & Classified Transactions</h3>
+            <p class="text-xs text-slate-400">All phone numbers and PII are redacted using SHA-256 tokens.</p>
+          </div>
+          <div class="flex items-center space-x-3 w-full sm:w-auto">
+            <input type="text" id="tx-search-input" oninput="filterTransactions()" placeholder="Search merchant or account..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none w-full sm:w-60">
+            <select id="tx-category-filter" onchange="filterTransactions()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="ALL">All Categories</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto max-h-96">
+          <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 uppercase font-semibold sticky top-0">
+              <tr>
+                <th class="px-4 py-3">Receipt</th>
+                <th class="px-4 py-3">Type</th>
+                <th class="px-4 py-3">Counterparty</th>
+                <th class="px-4 py-3">Category</th>
+                <th class="px-4 py-3">Amount (KES)</th>
+                <th class="px-4 py-3">Balance (KES)</th>
+                <th class="px-4 py-3">Engine</th>
+              </tr>
+            </thead>
+            <tbody id="tx-table-body" class="divide-y divide-slate-100 font-mono">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+    M-Pesa Scorer • Powered by FastAPI & LightGBM Machine Learning Pipeline
+  </footer>
+
+  <!-- Frontend Logic -->
+  <script>
+    let currentTransactions = [];
+    let categoryChartInstance = null;
+
+    function switchTab(tab) {
+      if (tab === 'pdf') {
+        document.getElementById('tab-pdf').classList.remove('hidden');
+        document.getElementById('tab-sms').classList.add('hidden');
+        document.getElementById('tab-pdf-btn').className = "pb-3 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-700 transition";
+        document.getElementById('tab-sms-btn').className = "pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition";
+      } else {
+        document.getElementById('tab-pdf').classList.add('hidden');
+        document.getElementById('tab-sms').classList.remove('hidden');
+        document.getElementById('tab-sms-btn').className = "pb-3 text-sm font-semibold border-b-2 border-emerald-600 text-emerald-700 transition";
+        document.getElementById('tab-pdf-btn').className = "pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition";
+      }
+    }
+
+    // Drag and drop PDF handlers
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('pdf-file-input');
+    const fileNameDisplay = document.getElementById('selected-file-name');
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('border-emerald-500', 'bg-emerald-50/50');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        showSelectedFile();
+      }
+    });
+    fileInput.addEventListener('change', showSelectedFile);
+
+    function showSelectedFile() {
+      if (fileInput.files.length > 0) {
+        fileNameDisplay.innerText = `Selected: ${fileInput.files[0].name} (${(fileInput.files[0].size / 1024).toFixed(1)} KB)`;
+        fileNameDisplay.classList.remove('hidden');
+      }
+    }
+
+    function loadSampleSms() {
+      document.getElementById('sms-text-input').value = [
+        "SH2819DK3L Confirmed. Ksh1,500.00 paid to KPLC PREPAID. for account 482910394 on 12/03/26 at 4:15 PM. New M-PESA balance is Ksh4,210.00. Transaction cost, Ksh23.00.",
+        "RJ99201LMA Confirmed. Ksh2,450.00 paid to QUICKMART TOM MBOYA NAIROBI. on 14/05/2026 at 8:30 PM. New M-PESA balance is Ksh-300.00. Fuliza M-PESA amount is Ksh300.00. Transaction cost, Ksh0.00.",
+        "TK1029384C Confirmed. Ksh500.00 sent to JOHN KAMAU 0722112233 on 10/01/26 at 11:00 AM. New M-PESA balance is Ksh1,200.00. Transaction cost, Ksh7.00.",
+        "PL4820194A Confirmed. You bought Ksh100.00 of airtime on 02/02/26 at 9:15 AM. New M-PESA balance is Ksh1,100.00. Transaction cost, Ksh0.00.",
+        "LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 15/05/26 at 9:45 PM. New M-PESA balance is Ksh8,500.00. Transaction cost, Ksh0.00.",
+        "NV7718290B Confirmed. Ksh4,500.00 paid to QUIVER LOUNGE THIKA ROAD. on 16/05/26 at 11:30 PM. New M-PESA balance is Ksh4,000.00. Transaction cost, Ksh0.00.",
+        "BR6628190X Confirmed. Ksh2,800.00 paid to THE ALCHEMIST BAR WESTLANDS. on 17/05/26 at 10:15 PM. New M-PESA balance is Ksh1,200.00. Transaction cost, Ksh0.00.",
+        "FD1029384A Confirmed. Ksh1,850.00 paid to JAVA HOUSE VALLEY ARCADE. on 18/05/26 at 1:15 PM. New M-PESA balance is Ksh9,350.00. Transaction cost, Ksh0.00.",
+        "SV1928374C Confirmed. Ksh10,000.00 paid to CIC MONEY MARKET FUND MMF. for account 819201 on 21/05/26 at 10:00 AM. New M-PESA balance is Ksh14,000.00. Transaction cost, Ksh34.00.",
+        "LN9182736D Confirmed. Ksh2,000.00 paid to TALA KENYA MOBILE LOAN. for account 0722112233 on 22/05/26 at 2:00 PM. New M-PESA balance is Ksh12,000.00. Transaction cost, Ksh15.00.",
+        "RC0192837E Confirmed. You have received Ksh60,000.00 from ACME TECH SOLUTIONS LTD on 25/05/26 at 8:00 AM. New M-PESA balance is Ksh72,000.00. Transaction cost, Ksh0.00."
+      ].join("\n\n");
+    }
+
+    async function analyzePdf() {
+      if (!fileInput.files.length) {
+        alert("Please select an M-Pesa PDF file first.");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+      const pwd = document.getElementById("pdf-password").value.trim();
+      if (pwd) formData.append("password", pwd);
+
+      showLoading(true);
+      try {
+        const res = await fetch("/api/v1/upload-pdf", {
+          method: "POST",
+          body: formData
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Failed to analyze PDF statement.");
+        }
+        const data = await res.json();
+        renderResults(data);
+      } catch (e) {
+        alert("Error: " + e.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function analyzeSms() {
+      const rawText = document.getElementById("sms-text-input").value.trim();
+      if (!rawText) {
+        alert("Please enter or paste at least one M-Pesa SMS notification.");
+        return;
+      }
+      // Split by double newline or regex pattern matching receipt ID
+      const messages = rawText
+        .split(/\n\s*\n/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      showLoading(true);
+      try {
+        const res = await fetch("/api/v1/score-full", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Failed to process SMS messages.");
+        }
+        const data = await res.json();
+        renderResults(data);
+      } catch (e) {
+        alert("Error: " + e.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function showLoading(show) {
+      document.getElementById("loading-spinner").classList.toggle("hidden", !show);
+      if (show) {
+        document.getElementById("results-section").classList.add("hidden");
+      }
+    }
+
+    function renderResults(data) {
+      const report = data.report;
+      currentTransactions = data.transactions;
+
+      document.getElementById("results-section").classList.remove("hidden");
+
+      // 1. Credit Score Card
+      const scoreEl = document.getElementById("score-value");
+      scoreEl.innerText = report.credit_score;
+
+      const tierBadge = document.getElementById("tier-badge");
+      tierBadge.innerText = report.risk_tier;
+
+      // Color tier badge
+      const tierColors = {
+        "EXCELLENT": "bg-emerald-100 text-emerald-800",
+        "GOOD": "bg-green-100 text-green-800",
+        "FAIR": "bg-amber-100 text-amber-800",
+        "POOR": "bg-orange-100 text-orange-800",
+        "VERY_POOR": "bg-rose-100 text-rose-800"
+      };
+      tierBadge.className = `px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${tierColors[report.risk_tier] || "bg-slate-100 text-slate-800"}`;
+
+      document.getElementById("limit-value").innerText = `KES ${report.recommended_limit_kes.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+      const confPct = Math.round(report.confidence * 100);
+      document.getElementById("confidence-bar").style.width = `${confPct}%`;
+      document.getElementById("confidence-text").innerText = `${confPct}% Confidence`;
+
+      // 2. Stats
+      document.getElementById("stat-inflows").innerText = `KES ${report.cash_flow.total_inflow.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+      document.getElementById("stat-outflows").innerText = `KES ${report.cash_flow.total_outflow.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+      
+      const netEl = document.getElementById("stat-net");
+      netEl.innerText = `KES ${report.cash_flow.net_cashflow.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+      netEl.className = `text-lg font-bold mt-1 ${report.cash_flow.net_cashflow >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+
+      document.getElementById("stat-fuliza").innerText = `${report.cash_flow.fuliza_count} (KES ${report.cash_flow.fuliza_total_amount.toLocaleString('en-KE', {minimumFractionDigits: 2})})`;
+      
+      const bal = report.cash_flow.latest_balance;
+      document.getElementById("stat-balance").innerText = bal !== null ? `KES ${bal.toLocaleString('en-KE', {minimumFractionDigits: 2})}` : "N/A";
+
+      // 3. Ratios
+      const setRatio = (id, barId, val) => {
+        const pct = Math.round(val * 100);
+        document.getElementById(id).innerText = `${(val * 100).toFixed(1)}%`;
+        document.getElementById(barId).style.width = `${Math.min(pct, 100)}%`;
+      };
+      setRatio("ratio-essential", "bar-essential", report.spending_habits.essential_ratio);
+      setRatio("ratio-savings", "bar-savings", report.spending_habits.savings_ratio);
+      setRatio("ratio-luxury", "bar-luxury", report.spending_habits.luxury_ratio);
+      setRatio("ratio-debt", "bar-debt", report.spending_habits.debt_service_ratio);
+      setRatio("ratio-gambling", "bar-gambling", report.spending_habits.gambling_ratio);
+
+      // 4. Positive & Risk Factors
+      const posList = document.getElementById("positive-factors-list");
+      posList.innerHTML = report.positive_factors.length
+        ? report.positive_factors.map(f => `<li class="flex items-start"><span class="text-emerald-500 mr-1.5 font-bold">✓</span>${f}</li>`).join("")
+        : '<li class="text-slate-400">None detected.</li>';
+
+      const riskList = document.getElementById("risk-factors-list");
+      riskList.innerHTML = report.risk_factors.length
+        ? report.risk_factors.map(f => `<li class="flex items-start"><span class="text-rose-500 mr-1.5 font-bold">⚠</span>${f}</li>`).join("")
+        : '<li class="text-emerald-600 font-semibold">Zero risk factors flagged!</li>';
+
+      // 5. Chart.js Category Donut
+      renderCategoryChart(report.spending_habits.category_totals);
+
+      // 6. Category dropdown filter
+      const catSelect = document.getElementById("tx-category-filter");
+      catSelect.innerHTML = '<option value="ALL">All Categories</option>';
+      const uniqueCats = [...new Set(currentTransactions.map(t => t.category))].sort();
+      uniqueCats.forEach(c => {
+        catSelect.innerHTML += `<option value="${c}">${c}</option>`;
+      });
+
+      renderTable(currentTransactions);
+      window.scrollTo({ top: document.getElementById("results-section").offsetTop - 80, behavior: 'smooth' });
+    }
+
+    function renderCategoryChart(categoryTotals) {
+      const ctx = document.getElementById('categoryChart').getContext('2d');
+      if (categoryChartInstance) categoryChartInstance.destroy();
+
+      const labels = Object.keys(categoryTotals);
+      const data = Object.values(categoryTotals);
+
+      const palette = [
+        '#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6',
+        '#6366f1', '#14b8a6', '#ef4444', '#84cc16', '#06b6d4'
+      ];
+
+      categoryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: palette.slice(0, labels.length),
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.label}: KES ${context.raw.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTable(txs) {
+      const tbody = document.getElementById("tx-table-body");
+      if (!txs.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400">No transactions match your search.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = txs.map(t => {
+        const p = t.parsed;
+        const isReceive = p.tx_type === "RECEIVE_MONEY";
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="px-4 py-3 font-semibold text-slate-900">${p.transaction_id}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isReceive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">${p.tx_type}</span></td>
+            <td class="px-4 py-3 text-slate-800 font-sans text-xs">${p.counterparty_masked || p.counterparty}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-800 font-sans">${t.category}</span></td>
+            <td class="px-4 py-3 font-semibold ${isReceive ? 'text-emerald-600' : 'text-slate-900'}">${isReceive ? '+' : '-'}KES ${p.amount.toLocaleString('en-KE', {minimumFractionDigits: 2})}</td>
+            <td class="px-4 py-3 text-slate-500">${p.balance !== null ? 'KES ' + p.balance.toLocaleString('en-KE', {minimumFractionDigits: 2}) : '-'}</td>
+            <td class="px-4 py-3 text-[10px] text-slate-400 font-sans">${t.decision_engine}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function filterTransactions() {
+      const q = document.getElementById("tx-search-input").value.toLowerCase();
+      const cat = document.getElementById("tx-category-filter").value;
+
+      const filtered = currentTransactions.filter(t => {
+        const matchesCategory = (cat === "ALL" || t.category === cat);
+        const textToSearch = `${t.parsed.transaction_id} ${t.parsed.counterparty} ${t.parsed.account_reference || ''}`.toLowerCase();
+        const matchesQuery = textToSearch.includes(q);
+        return matchesCategory && matchesQuery;
+      });
+
+      renderTable(filtered);
+    }
+  </script>
+</body>
+</html>
+

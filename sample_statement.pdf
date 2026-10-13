@@ -1,0 +1,68 @@
+%PDF-1.3
+%‚„œ”
+1 0 obj
+<<
+/Producer (pypdf)
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Count 1
+/Kids [ 4 0 R ]
+>>
+endobj
+3 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+4 0 obj
+<<
+/Type /Page
+/Resources <<
+/Font <<
+/Helvetica <<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+>>
+>>
+/MediaBox [ 0.0 0.0 612 792 ]
+/Parent 2 0 R
+/Contents <<
+/Length 419
+>>
+stream
+
+BT
+/Helvetica 10 Tf
+50 720 Td
+(SH2819DK3L 2026-03-12 16:15:00 Pay Bill to 888880 - KPLC PREPAID Acc. 482910394 Completed - 1,500.00 4,210.00) Tj
+0 -20 Td
+(LQ8912301A 2026-05-15 21:45:00 Merchant Payment to 81920 - OAKS AND CORKS WINES AND SPIRITS Completed - 3,200.00 8,500.00) Tj
+0 -20 Td
+(RC0192837E 2026-05-25 08:00:00 Funds received from 254711998877 ACME TECH SOLUTIONS LTD Completed 60,000.00 - 72,000.00) Tj
+ET
+
+endstream
+>>
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000015 00000 n 
+0000000054 00000 n 
+0000000113 00000 n 
+0000000162 00000 n 
+trailer
+<<
+/Size 5
+/Root 3 0 R
+/Info 1 0 R
+>>
+startxref
+799
+%%EOF
