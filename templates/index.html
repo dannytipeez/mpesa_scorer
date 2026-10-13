@@ -77,24 +77,45 @@
       border: 1px solid rgba(203, 213, 225, 0.8);
     }
 
-    /* Print styling: Renders clean unblurred report without navigation */
+    /* Print & PDF Document Styling */
+    .printable-report {
+      width: 760px;
+      margin: 0 auto;
+      background: #ffffff !important;
+      color: #0f172a !important;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+      line-height: 1.45;
+    }
+    .pdf-card {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 12px;
+      padding: 16px;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    .page-break {
+      page-break-before: always !important;
+      break-before: always !important;
+      margin-top: 24px;
+    }
+
+    /* Print media query */
     @media print {
-      header, footer, #tab-nav-wrapper, #tab-bank-panel, #tab-mpesa-pdf-panel, #tab-mpesa-sms-panel,
-      .no-print, #paywall-card, #tx-search-input, #tx-category-filter, #loading-spinner, .ambient-orb {
-        display: none !important;
+      body * {
+        visibility: hidden !important;
       }
-      #report-content-wrapper {
-        filter: none !important;
-        pointer-events: auto !important;
-        user-select: auto !important;
+      #printable-pdf-document, #printable-pdf-document * {
+        visibility: visible !important;
       }
-      body {
-        background-color: white !important;
-      }
-      .glass-card {
-        background: white !important;
-        border: 1px solid #e2e8f0 !important;
-        box-shadow: none !important;
+      #printable-pdf-document {
+        display: block !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
       }
     }
   </style>
@@ -556,6 +577,9 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
 
     </div>
 
+    <!-- Hidden Dedicated Printable PDF Document -->
+    <div id="printable-pdf-document" class="hidden"></div>
+
   </main>
 
   <!-- Footer -->
@@ -571,6 +595,8 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
     let isReportUnlocked = false;
     let currentCheckoutRequestId = null;
     let stkPollingInterval = null;
+    let latestScoringData = null;
+    let lastVerifiedReceipt = null;
 
     function switchStatementMode(mode) {
       const bankPanel = document.getElementById('tab-bank-panel');
@@ -670,6 +696,9 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         alert("Please select a Bank statement (PDF or CSV) first.");
         return;
       }
+      isReportUnlocked = false;
+      currentCheckoutRequestId = null;
+
       const formData = new FormData();
       formData.append("file", bankFileInput.files[0]);
       const pwd = document.getElementById("bank-password").value.trim();
@@ -686,7 +715,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
           throw new Error(err.detail || "Failed to analyze bank statement.");
         }
         const data = await res.json();
-        activeStatementSource = "BANK STATEMENT";
+        activeStatementSource = "BANK STATEMENT (KENYAN BANK E-STATEMENT)";
         renderResults(data);
       } catch (e) {
         alert("Error: " + e.message);
@@ -701,6 +730,9 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         alert("Please select an M-Pesa PDF file first.");
         return;
       }
+      isReportUnlocked = false;
+      currentCheckoutRequestId = null;
+
       const formData = new FormData();
       formData.append("file", mpesaFileInput.files[0]);
       const pwd = document.getElementById("mpesa-password").value.trim();
@@ -733,6 +765,9 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
         alert("Please enter or paste at least one M-Pesa SMS notification.");
         return;
       }
+      isReportUnlocked = false;
+      currentCheckoutRequestId = null;
+
       const messages = rawText
         .split(/\n\s*\n/)
         .map(s => s.trim())
@@ -768,6 +803,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
     }
 
     function renderResults(data) {
+      latestScoringData = data;
       const report = data.report;
       currentTransactions = data.transactions;
 
@@ -775,14 +811,19 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
       document.getElementById("source-badge").innerText = activeStatementSource;
       document.getElementById("tx-count-badge").innerText = `${currentTransactions.length} transactions analyzed`;
 
-      // If not yet unlocked, enforce glassmorphism paywall and blur
+      // Always enforce paywall on newly analyzed statements
       if (!isReportUnlocked) {
         document.getElementById("paywall-card").classList.remove("hidden");
         document.getElementById("report-content-wrapper").className = "space-y-8 filter blur-md select-none pointer-events-none transition duration-500";
         document.getElementById("payment-success-banner").classList.add("hidden");
         document.getElementById("top-download-pdf-btn").classList.add("hidden");
+        
+        // Scroll smoothly to paywall card so user sees prompt to unlock
+        setTimeout(() => {
+          document.getElementById("paywall-card").scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
       } else {
-        unlockReport("PREVIOUSLY_VERIFIED");
+        unlockReport(lastVerifiedReceipt || "PREVIOUSLY_VERIFIED");
       }
 
       // 1. Credit Score Card
@@ -1020,6 +1061,7 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
 
     function unlockReport(receiptCode) {
       isReportUnlocked = true;
+      lastVerifiedReceipt = receiptCode || "MPESA_VERIFIED";
 
       // Hide paywall card
       const paywallCard = document.getElementById("paywall-card");
@@ -1031,8 +1073,18 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
 
       // Show success banner and download button
       document.getElementById("payment-success-banner").classList.remove("hidden");
-      document.getElementById("payment-receipt-text").innerText = `Receipt: ${receiptCode} • Lipa na M-Pesa verified. Full Afriqan credit report unlocked.`;
+      document.getElementById("payment-receipt-text").innerText = `Receipt: ${lastVerifiedReceipt} • Lipa na M-Pesa verified. Full Afriqan credit report unlocked.`;
       document.getElementById("top-download-pdf-btn").classList.remove("hidden");
+
+      // Pre-populate printable report
+      if (latestScoringData) {
+        document.getElementById("printable-pdf-document").innerHTML = generatePrintableHtml(
+          latestScoringData.report,
+          latestScoringData.transactions,
+          activeStatementSource,
+          lastVerifiedReceipt
+        );
+      }
 
       // Scroll smoothly to top of results
       window.scrollTo({ top: document.getElementById("results-section").offsetTop - 40, behavior: 'smooth' });
@@ -1046,27 +1098,412 @@ LQ8912301A Confirmed. Ksh3,200.00 paid to OAKS AND CORKS WINES AND SPIRITS. on 1
     }
 
     // ==========================================
-    // EXPORT REPORT AS PDF
+    // EXPORT REPORT AS WELL-STRUCTURED CORPORATE PDF
     // ==========================================
 
+    function generatePrintableHtml(report, transactions, source, receiptCode) {
+      const nowStr = new Date().toLocaleString('en-KE', { 
+        dateStyle: 'medium', 
+        timeStyle: 'short' 
+      });
+      const reportSerial = "AFR-" + Math.floor(100000 + Math.random() * 900000);
+      const confPct = Math.round(report.confidence * 100);
+      const receiptStr = receiptCode || "MPESA_VERIFIED";
+
+      // Tier styling colors for PDF
+      const tierColors = {
+        "EXCELLENT": "#047857",
+        "GOOD": "#059669",
+        "FAIR": "#d97706",
+        "POOR": "#ea580c",
+        "VERY_POOR": "#e11d48"
+      };
+      const tierColor = tierColors[report.risk_tier] || "#059669";
+
+      // Category breakdown HTML
+      const catTotals = report.spending_habits.category_totals || {};
+      const catPcts = report.spending_habits.category_percentages || {};
+      let catRowsHtml = "";
+      for (const [cat, amt] of Object.entries(catTotals)) {
+        const pct = catPcts[cat] !== undefined ? catPcts[cat].toFixed(1) : "0.0";
+        catRowsHtml += `
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 7px 10px; font-weight: 600; color: #1e293b;">${cat}</td>
+            <td style="padding: 7px 10px; text-align: right; font-family: monospace; font-weight: 700;">KES ${amt.toLocaleString('en-KE', {minimumFractionDigits: 2})}</td>
+            <td style="padding: 7px 10px; text-align: right; font-weight: 600; color: #047857;">${pct}%</td>
+          </tr>
+        `;
+      }
+
+      // Positive factors
+      let posHtml = "";
+      (report.positive_factors || []).forEach(f => {
+        posHtml += `
+          <div style="background: #f0fdf4; border-left: 3px solid #10b981; padding: 7px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 11px; color: #065f46; font-weight: 600;">
+            ✓ ${f}
+          </div>
+        `;
+      });
+      if (!posHtml) posHtml = `<div style="font-size: 11px; color: #64748b;">No major positive drivers logged.</div>`;
+
+      // Risk flags
+      let riskHtml = "";
+      (report.risk_factors || []).forEach(r => {
+        riskHtml += `
+          <div style="background: #fff1f2; border-left: 3px solid #f43f5e; padding: 7px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 11px; color: #9f1239; font-weight: 600;">
+            ⚠ ${r}
+          </div>
+        `;
+      });
+      if (!riskHtml) riskHtml = `<div style="background: #f0fdf4; padding: 7px 10px; border-radius: 6px; font-size: 11px; color: #065f46; font-weight: 600;">✓ Clean behavioral profile: Zero high-risk flags detected.</div>`;
+
+      // Top 20 transactions
+      let txRowsHtml = "";
+      (transactions || []).slice(0, 20).forEach(t => {
+        const p = t.parsed || {};
+        const dt = p.timestamp ? new Date(p.timestamp).toLocaleDateString('en-KE') : "-";
+        const cp = p.counterparty_masked || p.counterparty || "-";
+        const amtStr = p.amount ? `KES ${p.amount.toLocaleString('en-KE', {minimumFractionDigits: 2})}` : "-";
+        const balStr = p.balance !== null && p.balance !== undefined ? `KES ${p.balance.toLocaleString('en-KE', {minimumFractionDigits: 2})}` : "-";
+        const isCredit = (p.tx_type === "RECEIVE_MONEY" || p.tx_type === "TransactionType.RECEIVE_MONEY");
+        txRowsHtml += `
+          <tr style="border-bottom: 1px solid #f1f5f9; font-size: 10px;">
+            <td style="padding: 6px 8px; font-family: monospace; color: #475569;">${dt}</td>
+            <td style="padding: 6px 8px; font-weight: 600; color: #0f172a; max-width: 220px; word-break: break-word;">${cp}</td>
+            <td style="padding: 6px 8px; color: #64748b;">${t.category || 'General'}</td>
+            <td style="padding: 6px 8px; text-align: right; font-family: monospace; font-weight: 700; color: ${isCredit ? '#047857' : '#0f172a'};">${isCredit ? '+' : '-'}${amtStr}</td>
+            <td style="padding: 6px 8px; text-align: right; font-family: monospace; color: #64748b;">${balStr}</td>
+          </tr>
+        `;
+      });
+
+      return `
+        <div class="printable-report" style="padding: 24px; background: #ffffff;">
+          
+          <!-- Page 1 Header -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 16px; border-bottom: 2px solid #059669; margin-bottom: 18px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 32px; height: 32px; background: #059669; border-radius: 8px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px;">A</div>
+                <div>
+                  <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">AFRIQAN <span style="color: #059669;">CREDIT SCORER</span></h1>
+                  <p style="margin: 2px 0 0 0; font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase;">Financial Health & Credit Risk Report</p>
+                </div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="display: inline-block; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 4px 10px; font-size: 10px; font-weight: 800; color: #065f46;">
+                ✓ VERIFIED & PAID • TILL 4466556
+              </div>
+              <p style="margin: 4px 0 0 0; font-size: 10px; color: #64748b; font-family: monospace;">Ref: ${reportSerial} | ${nowStr}</p>
+              <p style="margin: 2px 0 0 0; font-size: 10px; color: #059669; font-weight: 700;">Receipt: ${receiptStr}</p>
+            </div>
+          </div>
+
+          <!-- Document Metadata Bar -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; display: flex; justify-content: space-between; font-size: 11px;">
+            <div><span style="color: #64748b; font-weight: 600;">Source:</span> <strong style="color: #0f172a;">${source}</strong></div>
+            <div><span style="color: #64748b; font-weight: 600;">Records:</span> <strong style="color: #0f172a;">${(transactions || []).length} Analyzed</strong></div>
+            <div><span style="color: #64748b; font-weight: 600;">Currency:</span> <strong style="color: #0f172a;">KES (Kenya Shillings)</strong></div>
+            <div><span style="color: #64748b; font-weight: 600;">Confidence:</span> <strong style="color: #059669;">${confPct}%</strong></div>
+          </div>
+
+          <!-- 1. Executive Credit Scorecard -->
+          <div class="pdf-card" style="margin-bottom: 18px;">
+            <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr; gap: 16px; align-items: center;">
+              
+              <!-- Score Box -->
+              <div style="text-align: center; border-right: 1px solid #e2e8f0; padding-right: 12px;">
+                <span style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Afriqan Credit Score</span>
+                <div style="margin: 4px 0;">
+                  <span style="font-size: 42px; font-weight: 900; color: #0f172a; line-height: 1;">${report.credit_score}</span>
+                  <span style="font-size: 16px; font-weight: 700; color: #94a3b8;">/ 850</span>
+                </div>
+                <div style="display: inline-block; background: ${tierColor}; color: white; padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+                  ${report.risk_tier} RISK
+                </div>
+              </div>
+
+              <!-- Borrowing Limit -->
+              <div style="text-align: center; border-right: 1px solid #e2e8f0; padding-right: 12px;">
+                <span style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Recommended Micro-Loan Limit</span>
+                <div style="font-size: 26px; font-weight: 900; color: #059669; margin: 6px 0; line-height: 1.1;">
+                  KES ${report.recommended_limit_kes.toLocaleString('en-KE', {minimumFractionDigits: 2})}
+                </div>
+                <span style="font-size: 10px; color: #64748b; font-weight: 600;">Automated Digital Credit Cap</span>
+              </div>
+
+              <!-- Risk Indicator Stat -->
+              <div style="text-align: center;">
+                <span style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Model Reliability</span>
+                <div style="margin: 8px 0;">
+                  <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; width: 100%;">
+                    <div style="background: #059669; height: 100%; width: ${confPct}%;"></div>
+                  </div>
+                </div>
+                <span style="font-size: 11px; font-weight: 800; color: #0f172a;">${confPct}% Confidence Index</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 2. Liquidity & Cash Flow Overview -->
+          <div class="pdf-card" style="margin-bottom: 18px;">
+            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+              Cash Flow & Liquidity Summary
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; text-align: center;">
+              
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 6px;">
+                <span style="font-size: 10px; color: #64748b; font-weight: 700;">Total Inflows</span>
+                <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 4px; font-family: monospace;">
+                  KES ${report.cash_flow.total_inflow.toLocaleString('en-KE', {minimumFractionDigits: 0})}
+                </div>
+              </div>
+
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 6px;">
+                <span style="font-size: 10px; color: #64748b; font-weight: 700;">Total Outflows</span>
+                <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 4px; font-family: monospace;">
+                  KES ${report.cash_flow.total_outflow.toLocaleString('en-KE', {minimumFractionDigits: 0})}
+                </div>
+              </div>
+
+              <div style="background: ${report.cash_flow.net_cashflow >= 0 ? '#ecfdf5' : '#fff1f2'}; border: 1px solid ${report.cash_flow.net_cashflow >= 0 ? '#a7f3d0' : '#fecdd3'}; border-radius: 8px; padding: 10px 6px;">
+                <span style="font-size: 10px; color: ${report.cash_flow.net_cashflow >= 0 ? '#065f46' : '#9f1239'}; font-weight: 700;">Net Cash Flow</span>
+                <div style="font-size: 13px; font-weight: 900; color: ${report.cash_flow.net_cashflow >= 0 ? '#047857' : '#e11d48'}; margin-top: 4px; font-family: monospace;">
+                  ${report.cash_flow.net_cashflow >= 0 ? '+' : ''}KES ${report.cash_flow.net_cashflow.toLocaleString('en-KE', {minimumFractionDigits: 0})}
+                </div>
+              </div>
+
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 6px;">
+                <span style="font-size: 10px; color: #64748b; font-weight: 700;">Overdraft / Fuliza</span>
+                <div style="font-size: 13px; font-weight: 800; color: ${report.cash_flow.fuliza_count > 0 ? '#e11d48' : '#0f172a'}; margin-top: 4px; font-family: monospace;">
+                  ${report.cash_flow.fuliza_count} (KES ${report.cash_flow.fuliza_total_amount.toLocaleString('en-KE', {minimumFractionDigits: 0})})
+                </div>
+              </div>
+
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 6px;">
+                <span style="font-size: 10px; color: #64748b; font-weight: 700;">Terminal Balance</span>
+                <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 4px; font-family: monospace;">
+                  ${report.cash_flow.latest_balance !== null ? 'KES ' + report.cash_flow.latest_balance.toLocaleString('en-KE', {minimumFractionDigits: 0}) : 'N/A'}
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 3. Behavioral Credit Risk Ratios -->
+          <div class="pdf-card" style="margin-bottom: 18px;">
+            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+              Behavioral Credit Risk Ratios
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 4px;">
+                  <span style="color: #334155;">Essential Commitments (Utilities, Groceries, Rent)</span>
+                  <span style="color: #059669;">${(report.ratios.essential_spend_ratio * 100).toFixed(1)}%</span>
+                </div>
+                <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
+                  <div style="background: #059669; height: 100%; width: ${Math.min(100, report.ratios.essential_spend_ratio * 100)}%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 4px;">
+                  <span style="color: #334155;">Savings & Investments (MMFs, Saccos)</span>
+                  <span style="color: #0284c7;">${(report.ratios.savings_investment_ratio * 100).toFixed(1)}%</span>
+                </div>
+                <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
+                  <div style="background: #0284c7; height: 100%; width: ${Math.min(100, report.ratios.savings_investment_ratio * 100)}%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 4px;">
+                  <span style="color: #334155;">Luxury & Nightlife (Wines, Bars, Lounges)</span>
+                  <span style="color: ${report.ratios.luxury_spend_ratio > 0.25 ? '#e11d48' : '#d97706'};">${(report.ratios.luxury_spend_ratio * 100).toFixed(1)}%</span>
+                </div>
+                <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
+                  <div style="background: ${report.ratios.luxury_spend_ratio > 0.25 ? '#e11d48' : '#d97706'}; height: 100%; width: ${Math.min(100, report.ratios.luxury_spend_ratio * 100)}%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 4px;">
+                  <span style="color: #334155;">Debt Servicing Burden (Loan Repayments)</span>
+                  <span style="color: #7c3aed;">${(report.ratios.debt_service_ratio * 100).toFixed(1)}%</span>
+                </div>
+                <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
+                  <div style="background: #7c3aed; height: 100%; width: ${Math.min(100, report.ratios.debt_service_ratio * 100)}%;"></div>
+                </div>
+              </div>
+
+              <div style="grid-column: span 2;">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 4px;">
+                  <span style="color: #334155;">Gambling & Sports Betting Outflows</span>
+                  <span style="color: ${report.ratios.gambling_ratio > 0 ? '#e11d48' : '#059669'};">${(report.ratios.gambling_ratio * 100).toFixed(1)}%</span>
+                </div>
+                <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
+                  <div style="background: ${report.ratios.gambling_ratio > 0 ? '#e11d48' : '#059669'}; height: 100%; width: ${Math.min(100, report.ratios.gambling_ratio * 100)}%;"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Page 1 Bottom Footer -->
+          <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 9px; color: #94a3b8; font-weight: 600;">
+            Page 1 of 2 • Afriqan Credit Scorer • Automated Financial Intelligence Engine • Commercial In-Confidence
+          </div>
+
+          <!-- PAGE BREAK FOR PAGE 2 -->
+          <div class="page-break"></div>
+
+          <!-- Page 2 Mini Header -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 2px solid #059669; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 24px; height: 24px; background: #059669; border-radius: 6px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px;">A</div>
+              <span style="font-size: 14px; font-weight: 800; color: #0f172a;">AFRIQAN CREDIT SCORER</span>
+            </div>
+            <div style="font-size: 10px; color: #64748b; font-family: monospace;">Ref: ${reportSerial} • Page 2 of 2</div>
+          </div>
+
+          <!-- 4. Risk Signals Audit -->
+          <div class="pdf-card" style="margin-bottom: 16px;">
+            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+              Credit Risk Factors & Behavioral Signals
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div>
+                <div style="font-size: 10px; font-weight: 800; color: #059669; text-transform: uppercase; margin-bottom: 6px;">Positive Credit Indicators</div>
+                ${posHtml}
+              </div>
+              <div>
+                <div style="font-size: 10px; font-weight: 800; color: #e11d48; text-transform: uppercase; margin-bottom: 6px;">Risk Factors & Negative Flags</div>
+                ${riskHtml}
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Expenditure Breakdown by Category -->
+          <div class="pdf-card" style="margin-bottom: 16px;">
+            <div style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+              Expenditure Breakdown by Financial Category
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+              <thead>
+                <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 10px; text-transform: uppercase;">
+                  <th style="padding: 6px 10px; text-align: left;">Category</th>
+                  <th style="padding: 6px 10px; text-align: right;">Total Amount</th>
+                  <th style="padding: 6px 10px; text-align: right;">Percentage Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${catRowsHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 6. Transaction Ledger Audit -->
+          <div class="pdf-card" style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+              <span style="font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">Audited Statement Transactions (First 20 Records)</span>
+              <span style="font-size: 9px; color: #64748b; font-family: monospace;">Total Records: ${(transactions || []).length}</span>
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 9px; text-transform: uppercase;">
+                  <th style="padding: 5px 8px; text-align: left;">Date</th>
+                  <th style="padding: 5px 8px; text-align: left;">Entity / Narrative</th>
+                  <th style="padding: 5px 8px; text-align: left;">Category</th>
+                  <th style="padding: 5px 8px; text-align: right;">Amount</th>
+                  <th style="padding: 5px 8px; text-align: right;">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${txRowsHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Digital Seal & Disclaimer -->
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 10px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Afriqan Certified Digital Underwriting Assessment</div>
+              <p style="margin: 2px 0 0 0; font-size: 9px; color: #64748b; max-width: 540px;">
+                Generated by Afriqan Credit Scorer machine learning risk engine. Valid for micro-lending, asset financing, and digital loan decisioning. Verified against Lipa na M-Pesa transaction reference ${receiptStr}.
+              </p>
+            </div>
+            <div style="text-align: center; border: 2px solid #059669; border-radius: 8px; padding: 6px 12px; background: white;">
+              <div style="font-size: 10px; font-weight: 900; color: #059669;">AFRIQAN</div>
+              <div style="font-size: 8px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">VERIFIED</div>
+            </div>
+          </div>
+
+          <!-- Page 2 Footer -->
+          <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 9px; color: #94a3b8; font-weight: 600;">
+            Page 2 of 2 • Afriqan Credit Scorer • End of Official Financial Assessment Report
+          </div>
+
+        </div>
+      `;
+    }
+
     function downloadPdfReport() {
-      const element = document.getElementById("report-content-wrapper");
+      if (!latestScoringData) {
+        alert("Please analyze a statement first.");
+        return;
+      }
       const btn = document.getElementById("top-download-pdf-btn");
       const originalText = btn.innerHTML;
       btn.innerHTML = `<span>Generating PDF...</span>`;
 
+      const container = document.getElementById("printable-pdf-document");
+      container.innerHTML = generatePrintableHtml(
+        latestScoringData.report,
+        latestScoringData.transactions,
+        activeStatementSource,
+        lastVerifiedReceipt
+      );
+
+      // Temporarily reveal off-screen for html2pdf
+      container.classList.remove("hidden");
+      container.style.position = "fixed";
+      container.style.top = "0";
+      container.style.left = "-9999px";
+      container.style.width = "760px";
+      container.style.zIndex = "-1000";
+
       const opt = {
         margin: [8, 8, 8, 8],
-        filename: 'Afriqan_Credit_Score_Report.pdf',
+        filename: `Afriqan_Credit_Score_Report_${Date.now()}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          scrollY: 0,
+          scrollX: 0,
+          width: 760,
+          windowWidth: 760,
+          backgroundColor: '#ffffff',
+          logging: false
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
       };
 
-      html2pdf().set(opt).from(element).save().then(() => {
+      html2pdf().set(opt).from(container).save().then(() => {
+        container.classList.add("hidden");
+        container.style.position = "";
+        container.style.left = "";
         btn.innerHTML = originalText;
       }).catch(err => {
         console.error("PDF generation failed:", err);
+        container.classList.add("hidden");
+        container.style.position = "";
+        container.style.left = "";
         btn.innerHTML = originalText;
         // Fallback to native print dialog
         window.print();

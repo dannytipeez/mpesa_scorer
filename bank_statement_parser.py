@@ -77,45 +77,62 @@ class BankStatementParser:
         """
         clean = " ".join(narrative.strip().split())
         c_lower = clean.lower()
-        acc_ref = None
 
-        # Clean common bank transaction prefixes
-        # 1. POS Purchases (Cards at merchants / till)
+        # 1. Bank Charges, SMS fees, Alerts, Ledger fees, Commissions (Utilities / Fees)
+        if any(chg in c_lower for chg in [
+            "sms charge", "sms fee", "alert charge", "ledger fee", "maintenance fee",
+            "excise duty", "comm ", "commission", "tpg comm", "transaction charge"
+        ]):
+            return TransactionType.PAYBILL, "Bank Service & SMS Fee", None
+
+        # 2. Mobile Banking / M-Pesa App Outward or Inward (e.g. APP/MPESA/254768885233/A485B18BD9DE6/ FAUSTINA NDU)
+        m_app = re.search(r"app/mpesa/\d+/[A-Z0-9]+/\s*([^/]+?)(?:\s+[A-Z0-9]{8,}|$)", clean, re.IGNORECASE)
+        if m_app:
+            return TransactionType.SEND_MONEY, m_app.group(1).strip(), None
+
+        m_mpesa_out = re.search(r"mpesa/(?:outward/)?(?:[0-9]+/)?(?P<entity>[^/]+)", clean, re.IGNORECASE)
+        if m_mpesa_out:
+            return TransactionType.PAYBILL, m_mpesa_out.group("entity").strip(), None
+
+        # 3. PesaLink / EFT / RTGS Outward or Inward
+        if any(kw in c_lower for kw in ["pesalink", "eft", "rtgs"]):
+            m_pl = re.search(r"pesalink\s*(?:transfer|txn)?\s*(?:to|from)?\s*([^/]+?)(?:/\d+|$)", clean, re.IGNORECASE)
+            pl_entity = m_pl.group(1).strip() if m_pl else clean
+            if any(in_kw in c_lower for in_kw in ["received", "inward", "credit", "cr to", "salary"]):
+                return TransactionType.RECEIVE_MONEY, f"PesaLink: {pl_entity}", None
+            else:
+                return TransactionType.SEND_MONEY, f"PesaLink: {pl_entity}", None
+
+        # 4. Clean TPG and internal bank routing prefixes (e.g. TPG 49AP5E7477/KCB/Palm Limited Op/8D80E25E7477/1)
+        if clean.upper().startswith("TPG"):
+            cleaned_tpg = re.sub(r"^TPG\s+[A-Z0-9]+/(?:[A-Z0-9]+/)?", "", clean, flags=re.IGNORECASE)
+            cleaned_tpg = re.sub(r"/[A-Z0-9]+(?:/\d+)?$", "", cleaned_tpg)
+            clean = " ".join(cleaned_tpg.split())
+            c_lower = clean.lower()
+
+        # 5. POS Purchases (Cards at merchants / till)
         if "pos purchase" in c_lower or "pos " in c_lower or "point of sale" in c_lower:
             m = re.sub(r"^(?:pos\s*(?:purchase|txn)?\s*(?:\d+)?\s*[-:]?\s*)", "", clean, flags=re.IGNORECASE)
             return TransactionType.BUY_GOODS, m.strip(), None
 
-        # 2. PesaLink / EFT / RTGS Outward or Inward
-        if any(kw in c_lower for kw in ["pesalink", "eft", "rtgs"]):
-            if any(in_kw in c_lower for in_kw in ["received", "inward", "credit", "cr to", "salary"]):
-                sender = re.sub(r"^(?:pesalink|eft|rtgs)\s*(?:inward|credit|received from)?\s*[-:]?\s*", "", clean, flags=re.IGNORECASE)
-                return TransactionType.RECEIVE_MONEY, sender.strip(), None
-            else:
-                recipient = re.sub(r"^(?:pesalink|eft|rtgs)\s*(?:outward|transfer to|payment to)?\s*[-:]?\s*", "", clean, flags=re.IGNORECASE)
-                return TransactionType.SEND_MONEY, recipient.strip(), None
-
-        # 3. Mobile Banking / Paybill / C2B / M-Pesa to Bank
+        # 6. Mobile Banking / Paybill / C2B / M-Pesa
         if "mpesa" in c_lower or "paybill" in c_lower or "c2b" in c_lower or "b2c" in c_lower:
             if "b2c" in c_lower or "received from mpesa" in c_lower or "c2b" in c_lower:
                 return TransactionType.RECEIVE_MONEY, clean, None
             else:
                 return TransactionType.PAYBILL, clean, None
 
-        # 4. Standing Orders / Direct Debits
+        # 7. Standing Orders / Direct Debits
         if "standing order" in c_lower or "direct debit" in c_lower:
             beneficiary = re.sub(r"^(?:standing order|direct debit)\s*(?:to)?\s*[-:]?\s*", "", clean, flags=re.IGNORECASE)
             return TransactionType.PAYBILL, beneficiary.strip(), None
 
-        # 5. ATM Withdrawals
+        # 8. ATM Withdrawals
         if "atm " in c_lower or "cash withdrawal" in c_lower or "atm wdl" in c_lower:
             agent = re.sub(r"^(?:atm\s*(?:cash|wdl|withdrawal)?\s*[-:]?\s*)", "", clean, flags=re.IGNORECASE)
             return TransactionType.WITHDRAWAL, f"ATM Cash Withdrawal {agent.strip()}", None
 
-        # 6. Bank Charges / Ledger fees / Excise duty
-        if any(chg in c_lower for chg in ["ledger fee", "excise duty", "maintenance fee", "alert charge", "sms fee"]):
-            return TransactionType.PAYBILL, f"Bank Charges: {clean}", None
-
-        # 7. Card online payments (Netflix, Uber, Amazon, etc.)
+        # 9. Card online payments (Netflix, Uber, Amazon, etc.)
         if "visa" in c_lower or "mastercard" in c_lower:
             merchant = re.sub(r"^(?:visa|mastercard)\s*(?:debit|credit|purchase)?\s*[-:]?\s*", "", clean, flags=re.IGNORECASE)
             return TransactionType.BUY_GOODS, merchant.strip(), None
@@ -126,7 +143,11 @@ class BankStatementParser:
     def parse_pdf_stream(
         self, file_stream: io.BytesIO, password: Optional[str] = None
     ) -> List[ParsedTransaction]:
-        """Reads Bank statement PDF pages, decrypts if required, and extracts transactions."""
+        """
+        Reads Bank statement PDF pages, decrypts if required, and extracts transactions.
+        Supports Equity Bank, KCB, Co-op, NCBA, Stanbic, Absa, DTB, I&M, etc.
+        Handles both Date-in-middle (Equity format) and Date-at-start (KCB/Co-op format).
+        """
         reader = PdfReader(file_stream)
 
         if reader.is_encrypted:
@@ -138,7 +159,16 @@ class BankStatementParser:
 
         full_text_lines = []
         for page in reader.pages:
-            text = page.extract_text()
+            text = None
+            try:
+                text = page.extract_text(extraction_mode="layout")
+            except Exception:
+                text = None
+            if not text or len(text.strip()) < 50:
+                try:
+                    text = page.extract_text()
+                except Exception:
+                    text = ""
             if text:
                 for line in text.splitlines():
                     cleaned = line.strip()
@@ -146,93 +176,143 @@ class BankStatementParser:
                         full_text_lines.append(cleaned)
 
         transactions: List[ParsedTransaction] = []
-        i = 0
-        n = len(full_text_lines)
+        date_regex = re.compile(
+            r"\b(?P<date>\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|\d{4}[-/]\d{2}[-/]\d{2}|\d{1,2}-[A-Za-z]{3}-\d{2,4})\b"
+        )
+        amount_regex = re.compile(
+            r"(?<!\w)(?:(?P<neg>-)?(?P<num>\d{1,3}(?:,\d{3})*\.\d{2}))(?!\w)"
+        )
 
-        while i < n:
-            line = full_text_lines[i]
-            match = self.tx_line_regex.match(line)
+        header_skip = [
+            "statement period", "statement date", "account created", "currency kes",
+            "account number", "account branch", "customer name", "opening balance",
+            "closing balance", "brought forward", "carried forward", "page "
+        ]
 
-            if match:
-                date_str = match.group("date")
-                rest = match.group("rest").strip()
+        in_table = False
+        accumulated_narrative: List[str] = []
+        previous_balance: Optional[float] = None
 
-                # Handle multiline narrative wrapping
-                combined_rest = rest
-                next_idx = i + 1
-                while next_idx < n:
-                    next_line = full_text_lines[next_idx]
-                    if self.tx_line_regex.match(next_line) or "ACCOUNT STATEMENT" in next_line:
-                        break
-                    if re.search(r"-?[\d,]+\.\d{2}$", combined_rest):
-                        break
-                    combined_rest += " " + next_line
-                    next_idx += 1
-                i = next_idx - 1
+        for idx, line in enumerate(full_text_lines):
+            line_lower = line.lower()
 
-                # Extract trailing amounts: [Debit] [Credit] [Balance]
-                amounts_match = self.amounts_regex.search(combined_rest)
-                if amounts_match:
-                    narrative = combined_rest[: amounts_match.start()].strip()
-                    amt1 = amounts_match.group("amount1")
-                    amt2 = amounts_match.group("amount2")
-                    balance_str = amounts_match.group("balance")
+            # Detect table boundary
+            if any(tbl_kw in line_lower for tbl_kw in [
+                "transaction details", "particulars", "narrative", "payment reference",
+                "value date", "credit (money in)", "debit (money out)", "money in", "money out",
+                "running balance", "transactions"
+            ]):
+                in_table = True
+                accumulated_narrative = []
+                continue
 
-                    # Deduce debit vs credit
-                    # Usually: Debit is amt1, Credit is amt2 (or vice versa depending on column alignment)
-                    debit = 0.0
-                    credit = 0.0
+            # Skip metadata header lines outside the active transaction rows
+            if any(skip_kw in line_lower for skip_kw in header_skip) and not any(k in line_lower for k in ["tpg", "pos", "app/mpesa"]):
+                continue
 
-                    if amt2 and amt2 != "-":
-                        # Both columns present: amt1 is Debit, amt2 is Credit
-                        try:
-                            debit = float(amt1.replace(",", "")) if amt1 != "-" else 0.0
-                        except ValueError:
-                            pass
-                        try:
-                            credit = float(amt2.replace(",", ""))
-                        except ValueError:
-                            pass
+            date_match = date_regex.search(line)
+            amounts = amount_regex.findall(line)
+
+            if date_match and amounts:
+                d_str = date_match.group("date")
+                num_floats = []
+                for neg, num in amounts:
+                    val = float(num.replace(",", ""))
+                    num_floats.append(-val if neg == "-" else val)
+
+                cleaned_line = line
+                cleaned_line = date_regex.sub("", cleaned_line)
+                cleaned_line = amount_regex.sub("", cleaned_line)
+                cleaned_line = " ".join(cleaned_line.split())
+
+                # Payment reference code extraction
+                extracted_ref = None
+                ref_match = re.search(r"\b([A-Z0-9]{8,14})\b", cleaned_line)
+                if ref_match:
+                    extracted_ref = ref_match.group(1)
+                    cleaned_line = cleaned_line.replace(extracted_ref, "").strip()
+
+                full_narrative = " ".join(accumulated_narrative + [cleaned_line]).strip()
+                accumulated_narrative = []
+
+                balance: Optional[float] = None
+                tx_amount = 0.0
+                is_credit = False
+
+                if len(num_floats) >= 3:
+                    # [Debit, Credit, Balance]
+                    debit_val = abs(num_floats[0]) if num_floats[0] != 0 else 0.0
+                    credit_val = abs(num_floats[1]) if num_floats[1] != 0 else 0.0
+                    balance = num_floats[2]
+                    if credit_val > 0 and debit_val == 0:
+                        is_credit = True
+                        tx_amount = credit_val
                     else:
-                        # Single amount column: check if negative or narrative context
-                        try:
-                            val = float(amt1.replace(",", ""))
-                            if val < 0 or any(d_kw in narrative.lower() for d_kw in ["pos", "withdrawal", "wdl", "debit", "fee"]):
-                                debit = abs(val)
-                            else:
-                                credit = val
-                        except ValueError:
-                            pass
+                        is_credit = False
+                        tx_amount = debit_val if debit_val > 0 else (credit_val or 0.0)
+                elif len(num_floats) == 2:
+                    raw_amt = abs(num_floats[0])
+                    balance = num_floats[1]
 
-                    balance = float(balance_str.replace(",", "")) if balance_str else None
-                    tx_type, counterparty, acc_ref = self._interpret_narrative(narrative)
-
-                    if credit > 0:
-                        amount = credit
-                        if tx_type != TransactionType.RECEIVE_MONEY:
-                            tx_type = TransactionType.RECEIVE_MONEY
+                    # Mathematical delta resolution
+                    if previous_balance is not None:
+                        diff = round(balance - previous_balance, 2)
+                        if diff > 0:
+                            is_credit = True
+                            tx_amount = diff
+                        elif diff < 0:
+                            is_credit = False
+                            tx_amount = abs(diff)
+                        else:
+                            tx_amount = raw_amt
+                            is_credit = False
                     else:
-                        amount = debit if debit > 0 else 0.0
+                        if any(in_kw in full_narrative.lower() for in_kw in [
+                            "salary", "credit", "inward", "received", "refund", "deposit", "pesalink transfer"
+                        ]):
+                            is_credit = True
+                        else:
+                            is_credit = False
+                        tx_amount = raw_amt
+                else:
+                    val = num_floats[0]
+                    tx_amount = abs(val)
+                    is_credit = (val > 0 and any(in_kw in full_narrative.lower() for in_kw in ["salary", "credit", "inward", "deposit"]))
 
-                    timestamp = self._parse_date(date_str)
-                    tx_id = f"BNK{hashlib.md5((line + str(i)).encode()).hexdigest()[:7].upper()}"
-                    masked_cp = self._mask_account_or_phone(counterparty)
+                if balance is not None:
+                    previous_balance = balance
 
-                    tx = ParsedTransaction(
-                        transaction_id=tx_id,
-                        tx_type=tx_type,
-                        amount=amount,
-                        counterparty=counterparty,
-                        counterparty_masked=masked_cp,
-                        account_reference=acc_ref,
-                        timestamp=timestamp,
-                        balance=balance,
-                        tx_cost=0.0,
-                        fuliza_amount=None,
-                        raw_text=line,
-                    )
-                    transactions.append(tx)
-            i += 1
+                tx_type, counterparty, interp_ref = self._interpret_narrative(full_narrative)
+                if interp_ref:
+                    extracted_ref = interp_ref
+
+                if is_credit:
+                    if tx_type != TransactionType.RECEIVE_MONEY:
+                        tx_type = TransactionType.RECEIVE_MONEY
+                elif tx_type == TransactionType.RECEIVE_MONEY:
+                    tx_type = TransactionType.BUY_GOODS
+
+                timestamp = self._parse_date(d_str)
+                tx_id = f"BNK{hashlib.md5((line + str(idx)).encode()).hexdigest()[:7].upper()}"
+                masked_cp = self._mask_account_or_phone(counterparty)
+
+                tx = ParsedTransaction(
+                    transaction_id=tx_id,
+                    tx_type=tx_type,
+                    amount=tx_amount,
+                    counterparty=counterparty,
+                    counterparty_masked=masked_cp,
+                    account_reference=extracted_ref,
+                    timestamp=timestamp,
+                    balance=balance,
+                    tx_cost=0.0,
+                    fuliza_amount=None,
+                    raw_text=line,
+                )
+                transactions.append(tx)
+            else:
+                if in_table and not amounts:
+                    accumulated_narrative.append(line)
 
         return transactions
 
